@@ -16,9 +16,9 @@
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
 
-  /* ── SETUP ── */
+  /* SETUP */
   #setup-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px; max-width: 520px; width: 100%; }
+  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px; max-width: 560px; width: 100%; }
   .setup-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
   .setup-logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
   .setup-logo-icon svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -27,7 +27,7 @@
   .step { display: none; }
   .step.active { display: block; }
   .step-title { font-size: 17px; font-weight: 600; margin-bottom: 5px; }
-  .step-desc { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+  .step-desc { font-size: 13px; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
   .field-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
   .field-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border2); border-radius: var(--radius); font-size: 13px; font-family: 'SF Mono', monospace; color: var(--text); background: var(--surface2); outline: none; transition: border-color 0.15s; }
   .field-input:focus { border-color: var(--accent); }
@@ -39,98 +39,103 @@
   .demo-btn:hover { background: var(--bg); }
   .setup-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
   .loading-indicator { display: none; align-items: center; gap: 10px; padding: 12px; background: var(--accent-light); border-radius: var(--radius); margin-top: 12px; font-size: 13px; color: var(--accent); }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--accent-light); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(45,74,138,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 
-  /* ── SELEÇÃO DE MARCAS/CATEGORIAS ── */
-  .selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  /* SELEÇÃO */
+  .selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
   .selection-box { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .selection-box-header { padding: 8px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 500; color: var(--text2); display: flex; align-items: center; justify-content: space-between; }
   .selection-box-header span { font-size: 11px; color: var(--accent); cursor: pointer; }
   .sel-search { width: 100%; padding: 7px 10px; border: none; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); background: var(--surface); outline: none; }
   .sel-search:focus { background: var(--accent-light); }
   .sel-search::placeholder { color: var(--text3); }
-  .selection-list { max-height: 180px; overflow-y: auto; padding: 4px; }
+  .selection-list { max-height: 190px; overflow-y: auto; padding: 4px; }
   .selection-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 5px; cursor: pointer; transition: background 0.12s; font-size: 12px; }
   .selection-item:hover { background: var(--surface2); }
-  .selection-item input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+  .selection-item input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
   .selection-item-name { flex: 1; color: var(--text); line-height: 1.4; }
-  .selection-item-path { font-size: 10px; color: var(--text3); display: block; }
+  .sel-path { font-size: 10px; color: var(--text3); display: block; margin-bottom: 1px; }
   .selection-item-count { font-size: 10px; color: var(--text3); white-space: nowrap; padding-top: 2px; }
-  .sel-empty { padding: 12px; text-align: center; font-size: 12px; color: var(--text3); }
+  .sel-empty { padding: 14px; text-align: center; font-size: 12px; color: var(--text3); }
   .selection-info { font-size: 12px; color: var(--text2); margin-bottom: 10px; padding: 8px 12px; background: var(--amber-bg); border-radius: var(--radius); border: 1px solid #f0d090; }
-  .selected-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; min-height: 10px; }
-  .sel-chip { display: flex; align-items: center; gap: 4px; background: var(--accent-light); color: var(--accent); border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: 500; }
-  .sel-chip-x { cursor: pointer; font-size: 14px; line-height: 1; opacity: 0.6; margin-left: 1px; }
+  .selected-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 2px; min-height: 8px; }
+  .sel-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-light); color: var(--accent); border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: 500; max-width: 200px; }
+  .sel-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sel-chip-x { cursor: pointer; font-size: 15px; line-height: 1; opacity: 0.5; flex-shrink: 0; }
   .sel-chip-x:hover { opacity: 1; }
 
-  /* ── TOPBAR ── */
+  /* TOPBAR */
   #app { display: none; }
   .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .topbar-left { display: flex; align-items: center; gap: 10px; }
-  .topbar-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .topbar-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .topbar-logo svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .topbar-title { font-size: 14px; font-weight: 600; }
-  .status-pill { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .topbar-title { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .status-pill { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; }
   .status-live { background: var(--green-bg); color: var(--green); }
   .status-demo { background: var(--amber-bg); color: var(--amber); }
   .status-loading { background: var(--accent-light); color: var(--accent); }
   .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .topbar-right { display: flex; align-items: center; gap: 8px; }
-  .last-update { font-size: 11px; color: var(--text3); }
-  .topbar-btn { padding: 5px 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.15s; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .last-update { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .topbar-btn { padding: 5px 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.15s; white-space: nowrap; }
   .topbar-btn:hover { background: var(--bg); }
   .topbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* ── MAIN ── */
-  .main { padding: 18px 24px; max-width: 1200px; margin: 0 auto; }
-  .rate-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  /* MAIN */
+  .main { padding: 16px 24px; max-width: 1280px; margin: 0 auto; }
+  .rate-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
   .rate-bar-label { font-size: 11px; color: var(--text2); white-space: nowrap; }
   .rate-track { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; }
   .rate-fill { height: 100%; border-radius: 3px; transition: width 0.4s, background 0.4s; }
   .rate-count { font-size: 11px; color: var(--text3); white-space: nowrap; min-width: 90px; text-align: right; }
 
-  /* ── FILTROS ATIVOS ── */
-  .active-filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .af-label { font-size: 11px; color: var(--text3); }
-  .af-chip { display: flex; align-items: center; gap: 4px; background: var(--accent-light); color: var(--accent); border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: 500; }
-  .af-chip-x { cursor: pointer; font-size: 13px; line-height: 1; opacity: 0.6; }
-  .af-chip-x:hover { opacity: 1; }
-  .af-edit { font-size: 11px; color: var(--accent); cursor: pointer; margin-left: auto; text-decoration: underline; }
+  /* FILTROS ATIVOS */
+  .active-filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 14px; margin-bottom: 12px; display: none; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .af-label { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+  .af-chip { background: var(--accent-light); color: var(--accent); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .af-edit { font-size: 11px; color: var(--accent); cursor: pointer; margin-left: auto; text-decoration: underline; white-space: nowrap; }
 
-  /* ── FILTROS DO DASHBOARD ── */
-  .filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  /* FILTROS DASHBOARD */
+  .filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
   .filter-group { display: flex; flex-direction: column; gap: 4px; }
   .filter-group label { font-size: 11px; color: var(--text3); font-weight: 500; }
   .filter-group select { padding: 6px 10px; border: 1px solid var(--border2); border-radius: 6px; font-size: 12px; color: var(--text); background: var(--surface2); outline: none; min-width: 130px; cursor: pointer; }
   .filter-group select:focus { border-color: var(--accent); }
-  .range-row { display: flex; align-items: center; gap: 6px; }
-  .range-val { font-size: 11px; color: var(--accent); font-weight: 500; min-width: 70px; }
-  .filter-group input[type=range] { width: 110px; }
+  .range-row { display: flex; align-items: center; gap: 8px; }
+  .range-val { font-size: 12px; color: var(--accent); font-weight: 500; min-width: 75px; }
+  .filter-group input[type=range] { width: 120px; }
   .filter-clear { padding: 6px 12px; border: 1px solid var(--border2); border-radius: 6px; background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; align-self: flex-end; }
   .filter-clear:hover { background: var(--bg); }
   .filter-count { font-size: 11px; color: var(--text3); align-self: flex-end; padding-bottom: 7px; }
 
-  /* ── KPIs ── */
+  /* KPIs */
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
   .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 15px; }
   .kpi-label { font-size: 11px; color: var(--text3); margin-bottom: 5px; }
-  .kpi-val { font-size: 24px; font-weight: 600; line-height: 1; }
+  .kpi-val { font-size: 22px; font-weight: 600; line-height: 1; }
   .kpi-sub { font-size: 11px; margin-top: 4px; color: var(--text3); }
-  .kpi-val.green { color: var(--green); } .kpi-val.amber { color: var(--amber); } .kpi-val.red { color: var(--red); } .kpi-val.blue { color: var(--accent); }
+  .kpi-val.green { color: var(--green); } .kpi-val.amber { color: var(--amber); }
+  .kpi-val.red { color: var(--red); } .kpi-val.blue { color: var(--accent); }
 
-  /* ── TABELAS ── */
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  /* TABELAS */
+  .section-header { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
   .section-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
   .section-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--accent-light); color: var(--accent); font-weight: 500; }
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
-  table { width: 100%; border-collapse: collapse; }
-  thead th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; cursor: pointer; user-select: none; }
+  thead th:hover { color: var(--accent); }
+  thead th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
   tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--surface2); }
-  .td-mono { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--text3); }
-  .td-price { font-weight: 600; text-align: right; }
-  .td-right { text-align: right; }
+  .td-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: var(--text3); }
+  .td-nome { max-width: 280px; }
+  .td-nome-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 280px; }
+  .td-price { font-weight: 600; text-align: right; white-space: nowrap; }
+  .td-right { text-align: right; white-space: nowrap; }
   .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
   .badge-green { background: var(--green-bg); color: var(--green); }
   .badge-amber { background: var(--amber-bg); color: var(--amber); }
@@ -139,19 +144,23 @@
   .stock-ok { color: var(--green); }
   .empty-state { padding: 36px 20px; text-align: center; color: var(--text3); font-size: 13px; }
 
-  /* ── ALERTAS ── */
+  /* ALERTAS */
   .error-bar { background: var(--red-bg); border: 1px solid #f5c2c2; border-radius: var(--radius); padding: 9px 14px; margin-bottom: 12px; font-size: 12px; color: var(--red); display: none; align-items: center; gap: 8px; }
   .cooldown-bar { background: var(--amber-bg); border: 1px solid #f5d98a; border-radius: var(--radius); padding: 9px 14px; margin-bottom: 12px; font-size: 12px; color: var(--amber); display: none; align-items: center; gap: 8px; }
-
   .footer { text-align: center; font-size: 11px; color: var(--text3); padding: 18px 0 28px; border-top: 1px solid var(--border); margin-top: 6px; }
 
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  @media (max-width: 700px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .selection-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .selection-grid { grid-template-columns: 1fr; }
+    .topbar-title { display: none; }
+    .last-update { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<!-- ══════════ SETUP ══════════ -->
+<!-- SETUP -->
 <div id="setup-screen">
   <div class="setup-card">
     <div class="setup-logo">
@@ -161,25 +170,25 @@
       <div><div class="setup-logo-text">Dashboard ANYMARKET</div><div class="setup-logo-sub">Oportunidades de Produto</div></div>
     </div>
 
-    <!-- STEP 1: Token -->
+    <!-- STEP 1 -->
     <div class="step active" id="step-token">
       <div class="step-title">Conectar à API</div>
-      <p class="step-desc">Cole seu token de acesso. Ele fica salvo apenas no seu navegador.</p>
+      <p class="step-desc">Cole seu token de acesso. Ele fica salvo apenas no seu navegador — nunca é enviado a terceiros.</p>
       <label class="field-label">Token de acesso (gumgaToken)</label>
       <input type="password" id="token-input" class="field-input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
       <div class="field-hint">ANYMARKET → Configurações → Integrações → API</div>
-      <div class="loading-indicator" id="load-marcas-cats">
-        <div class="spinner"></div><span>Carregando marcas e categorias...</span>
+      <div class="loading-indicator" id="load-indicator">
+        <div class="spinner"></div><span id="load-text">Carregando...</span>
       </div>
       <button class="primary-btn" id="btn-avancar" onclick="carregarMarcasCategorias()">Avançar →</button>
       <hr class="setup-divider">
       <button class="demo-btn" onclick="iniciarDemo()">▶ Entrar com dados de demonstração</button>
     </div>
 
-    <!-- STEP 2: Seleção -->
+    <!-- STEP 2 -->
     <div class="step" id="step-selecao">
       <div class="step-title">Selecionar marcas e categorias</div>
-      <p class="step-desc">Busque e selecione o que deseja trazer. Apenas esses produtos serão buscados na API.</p>
+      <p class="step-desc">Busque e selecione o que deseja trazer. Apenas esses produtos serão consultados na API.</p>
       <div class="selection-info" id="selecao-info">Selecione ao menos uma marca ou categoria para continuar.</div>
       <div class="selection-grid">
         <div class="selection-box">
@@ -189,7 +198,7 @@
         </div>
         <div class="selection-box">
           <div class="selection-box-header">Categorias <span onclick="toggleTodos('categorias')">Todas</span></div>
-          <input class="sel-search" id="search-categorias" placeholder="Buscar categoria..." oninput="filtrarLista('categorias')">
+          <input class="sel-search" id="search-categorias" placeholder="Buscar categoria ou subcategoria..." oninput="filtrarLista('categorias')">
           <div class="selection-list" id="lista-categorias"></div>
         </div>
       </div>
@@ -200,7 +209,7 @@
   </div>
 </div>
 
-<!-- ══════════ APP ══════════ -->
+<!-- APP -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-left">
@@ -228,7 +237,6 @@
     </div>
 
     <div class="active-filters" id="active-filters"></div>
-
     <div class="error-bar" id="error-bar"><span id="error-msg"></span></div>
     <div class="cooldown-bar" id="cooldown-bar"><span id="cooldown-msg"></span></div>
 
@@ -258,7 +266,7 @@
         <label>Categoria</label>
         <select id="f-cat" onchange="aplicarFiltros()"><option value="">Todas</option></select>
       </div>
-      <button class="filter-clear" onclick="limparFiltros()">Limpar</button>
+      <button class="filter-clear" onclick="limparFiltros()">Limpar filtros</button>
       <span class="filter-count" id="filter-count"></span>
     </div>
 
@@ -266,29 +274,57 @@
       <div class="kpi"><div class="kpi-label">SKUs carregados</div><div class="kpi-val blue" id="kpi-total">—</div><div class="kpi-sub" id="kpi-total-sub"></div></div>
       <div class="kpi"><div class="kpi-label">Ticket alto + estoque</div><div class="kpi-val green" id="kpi-opp">—</div><div class="kpi-sub" id="kpi-opp-sub"></div></div>
       <div class="kpi"><div class="kpi-label">Sem anúncio no ML</div><div class="kpi-val red" id="kpi-sem">—</div><div class="kpi-sub" id="kpi-sem-sub"></div></div>
-      <div class="kpi"><div class="kpi-label">Receita potencial perdida</div><div class="kpi-val amber" id="kpi-receita">—</div><div class="kpi-sub">produtos sem anúncio ativo</div></div>
+      <div class="kpi"><div class="kpi-label">Valor total em estoque</div><div class="kpi-val amber" id="kpi-valor">—</div><div class="kpi-sub" id="kpi-valor-sub">produtos filtrados</div></div>
     </div>
 
     <div class="section-header">
       <div class="section-title">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        Ticket alto + estoque disponível <span class="section-badge" id="badge-opp">0</span>
+        Ticket alto + estoque disponível
       </div>
+      <span class="section-badge" id="badge-opp">0</span>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>SKU</th><th>Produto</th><th>Marca</th><th>Categoria</th><th style="text-align:right">Preço</th><th style="text-align:right">Estoque</th><th style="text-align:right">Valor em estoque</th><th>Status ML</th></tr></thead>
-      <tbody id="tbody-opp"></tbody></table>
+      <table id="tbl-opp">
+        <thead>
+          <tr>
+            <th onclick="sortTabela('opp','sku')">SKU</th>
+            <th onclick="sortTabela('opp','nome')">Produto</th>
+            <th onclick="sortTabela('opp','marca')">Marca</th>
+            <th onclick="sortTabela('opp','categoria')">Categoria</th>
+            <th style="text-align:right" onclick="sortTabela('opp','preco')">Preço</th>
+            <th style="text-align:right" onclick="sortTabela('opp','estoque')">Estoque</th>
+            <th style="text-align:right" onclick="sortTabela('opp','valor')">Valor em estoque</th>
+            <th>Status ML</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-opp"></tbody>
+      </table>
     </div>
 
     <div class="section-header">
       <div class="section-title">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-        Produtos sem anúncio no Mercado Livre <span class="section-badge" id="badge-sem">0</span>
+        Produtos sem anúncio no Mercado Livre
       </div>
+      <span class="section-badge" id="badge-sem">0</span>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>SKU</th><th>Produto</th><th>Marca</th><th>Categoria</th><th style="text-align:right">Preço</th><th style="text-align:right">Estoque</th><th style="text-align:right">Valor em estoque</th><th style="text-align:right">Receita potencial</th></tr></thead>
-      <tbody id="tbody-sem"></tbody></table>
+      <table id="tbl-sem">
+        <thead>
+          <tr>
+            <th onclick="sortTabela('sem','sku')">SKU</th>
+            <th onclick="sortTabela('sem','nome')">Produto</th>
+            <th onclick="sortTabela('sem','marca')">Marca</th>
+            <th onclick="sortTabela('sem','categoria')">Categoria</th>
+            <th style="text-align:right" onclick="sortTabela('sem','preco')">Preço</th>
+            <th style="text-align:right" onclick="sortTabela('sem','estoque')">Estoque</th>
+            <th style="text-align:right" onclick="sortTabela('sem','valor')">Valor em estoque</th>
+            <th style="text-align:right" onclick="sortTabela('sem','receita')">Receita potencial</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-sem"></tbody>
+      </table>
     </div>
 
     <div class="footer">Dashboard ANYMARKET · Token armazenado apenas localmente · Dados conforme última sincronização</div>
@@ -296,6 +332,7 @@
 </div>
 
 <script>
+// ── CONFIG ──
 const CONFIG = {
   BASE_URL: 'https://api.anymarket.com.br/v2',
   PAGE_SIZE: 100,
@@ -309,6 +346,7 @@ const CONFIG = {
   KEY_SELECAO: 'any_selecao',
 };
 
+// ── ESTADO ──
 let state = {
   token: null, isDemo: false,
   produtos: [], filtrados: [],
@@ -316,6 +354,7 @@ let state = {
   marcasSelecionadas: [], categoriasSelecionadas: [],
   chamadas: 0, chamadas_data: null,
   ultimo_refresh: null, carregando: false,
+  sort: { opp: { campo: 'preco', dir: 'desc' }, sem: { campo: 'valor', dir: 'desc' } },
 };
 
 // ── RATE LIMIT ──
@@ -337,14 +376,14 @@ function atualizarRateBar() {
   f.style.width = pct + '%';
   f.style.background = pct < 60 ? 'var(--green)' : pct < 85 ? 'var(--amber)' : 'var(--red)';
   document.getElementById('rate-count').textContent = state.isDemo
-    ? 'Modo demo' : `${state.chamadas} / ${CONFIG.MAX_CHAMADAS_DIA} hoje`;
+    ? 'Modo demo — sem chamadas' : `${state.chamadas} / ${CONFIG.MAX_CHAMADAS_DIA} hoje`;
 }
 function podeFazerRefresh() {
   if (!state.ultimo_refresh) return true;
   return (Date.now() - state.ultimo_refresh) / 60000 >= CONFIG.COOLDOWN_MIN;
 }
 
-// ── FETCH HELPER ──
+// ── API ──
 async function fetchTodas(endpoint) {
   const todas = [];
   let offset = 0;
@@ -354,7 +393,7 @@ async function fetchTodas(endpoint) {
     todas.push(...itens);
     if (itens.length < 100) break;
     offset += 100;
-    await new Promise(r => setTimeout(r, 300));
+    await delay(300);
   }
   return todas;
 }
@@ -363,13 +402,60 @@ async function apiFetch(path) {
   if (!podeCarregar()) throw new Error(`Limite de ${CONFIG.MAX_CHAMADAS_DIA} chamadas diárias atingido.`);
   const resp = await fetch(CONFIG.BASE_URL + path, { headers: { 'gumgaToken': state.token } });
   registrarChamada(1);
-  if (resp.status === 401) throw new Error('Token inválido ou expirado.');
+  if (resp.status === 401) throw new Error('Token inválido ou expirado. Verifique e tente novamente.');
   if (resp.status === 429) throw new Error('Limite da API atingido (429). Aguarde alguns minutos.');
   if (!resp.ok) throw new Error(`Erro da API: ${resp.status}`);
   return resp.json();
 }
 
-// ── STEP 1: Carregar marcas e categorias ──
+async function buscarComFiltro(filtro) {
+  const todos = [];
+  let offset = 0, pagina = 0;
+  while (pagina < CONFIG.MAX_PAGINAS) {
+    if (!podeCarregar()) { mostrarErro('Limite de chamadas atingido. Dados parciais exibidos.'); break; }
+    const data = await apiFetch(`/products?limit=${CONFIG.PAGE_SIZE}&offset=${offset}&${filtro}`);
+    const itens = data.content || [];
+    if (!itens.length) break;
+    todos.push(...itens);
+    if (itens.length < CONFIG.PAGE_SIZE) break;
+    offset += CONFIG.PAGE_SIZE;
+    pagina++;
+    await delay(CONFIG.DELAY_MS);
+  }
+  return todos;
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ── NORMALIZAÇÃO ──
+function normalizarProduto(p) {
+  const marca = p.brand?.name || (typeof p.brand === 'string' ? p.brand : '—');
+  // FIX: usar path completo como categoria para diferenciar subcategorias
+  const categoria = p.category?.path || p.category?.name || '—';
+  const sku = p.skus?.[0]?.partnerId || p.skuId || String(p.id) || '—';
+  const preco = parseFloat(p.skus?.[0]?.price ?? p.price ?? 0);
+  const estoque = parseInt(p.skus?.[0]?.amount ?? p.stockQuantity ?? 0);
+  return {
+    sku,
+    nome: p.title || p.name || '—',
+    marca,
+    categoria,
+    preco,
+    estoque,
+    valor: preco * estoque,
+    anuncioML: detectarAnuncioML(p),
+  };
+}
+
+function detectarAnuncioML(p) {
+  if (Array.isArray(p.channels))
+    return p.channels.some(c => (c.channelName||'').toLowerCase().includes('mercado') && c.status === 'ACTIVE');
+  if (Array.isArray(p.marketplaces))
+    return p.marketplaces.some(m => (m.name||'').toLowerCase().includes('mercado') && m.active);
+  return null;
+}
+
+// ── STEP 1: carregar marcas + categorias ──
 async function carregarMarcasCategorias() {
   const token = document.getElementById('token-input').value.trim();
   if (!token) { alert('Informe o token de acesso.'); return; }
@@ -377,44 +463,44 @@ async function carregarMarcasCategorias() {
   localStorage.setItem(CONFIG.KEY_TOKEN, token);
   carregarChamadas();
 
-  const btn = document.getElementById('btn-avancar');
-  btn.disabled = true;
-  document.getElementById('load-marcas-cats').style.display = 'flex';
-
+  setLoadingUI(true, 'Carregando marcas...');
   try {
-    // Busca marcas via endpoint dedicado
+    // Marcas
     const marcasBruto = await fetchTodas('/brands');
     state.marcasDisponiveis = marcasBruto.sort((a,b) => a.name.localeCompare(b.name));
 
-    // Categorias: extrai dos produtos (endpoint /categories omite subcategorias)
-    // Busca uma amostra de produtos para mapear categorias reais
-    document.querySelector('#load-marcas-cats span').textContent = 'Mapeando categorias reais...';
+    // Categorias: endpoint oficial (seed) + varredura de produtos (subcategorias ocultas)
+    setLoadingUI(true, 'Mapeando categorias...');
     const catMap = new Map();
+
+    const catsBruto = await fetchTodas('/categories');
+    catsBruto.filter(c => (c.totalProducts||0) > 0).forEach(c => {
+      catMap.set(String(c.id), { id:c.id, name:c.name, path:c.path||c.name, totalProducts:c.totalProducts||0 });
+    });
+
+    // Varre até 500 produtos para capturar subcategorias não listadas
+    setLoadingUI(true, 'Mapeando subcategorias...');
     let offset = 0;
-    while (offset < 500) {
-      if (!podeCarregar()) break;
+    while (offset < 500 && podeCarregar()) {
       const data = await apiFetch(`/products?limit=100&offset=${offset}`);
       const itens = data.content || [];
       if (!itens.length) break;
       itens.forEach(p => {
-        if (p.category && p.category.id) {
+        if (p.category?.id) {
           const key = String(p.category.id);
           if (!catMap.has(key)) {
-            catMap.set(key, {
-              id: p.category.id,
-              name: p.category.name || p.category.path,
-              path: p.category.path || p.category.name,
-              totalProducts: 0,
-            });
+            catMap.set(key, { id:p.category.id, name:p.category.name||p.category.path, path:p.category.path||p.category.name, totalProducts:0 });
           }
           catMap.get(key).totalProducts++;
         }
       });
       if (itens.length < 100) break;
       offset += 100;
-      await new Promise(r => setTimeout(r, 400));
+      await delay(400);
     }
+
     state.categoriasDisponiveis = [...catMap.values()]
+      .filter(c => c.totalProducts > 0)
       .sort((a,b) => (a.path||a.name).localeCompare(b.path||b.name));
 
     renderizarSelecao();
@@ -422,16 +508,22 @@ async function carregarMarcasCategorias() {
   } catch(e) {
     mostrarErro(e.message);
   } finally {
-    btn.disabled = false;
-    document.getElementById('load-marcas-cats').style.display = 'none';
+    setLoadingUI(false);
   }
 }
 
+function setLoadingUI(loading, texto='') {
+  const btn = document.getElementById('btn-avancar');
+  const ind = document.getElementById('load-indicator');
+  btn.disabled = loading;
+  ind.style.display = loading ? 'flex' : 'none';
+  if (texto) document.getElementById('load-text').textContent = texto;
+}
+
+// ── STEP 2: seleção ──
 function renderizarSelecao() {
-  // Ordenar categorias por path para mostrar hierarquia
   state.categoriasDisponiveis.sort((a,b) => (a.path||a.name).localeCompare(b.path||b.name));
 
-  // Restaurar seleção salva
   const salvo = JSON.parse(localStorage.getItem(CONFIG.KEY_SELECAO) || '{}');
   state.marcasSelecionadas = salvo.marcas
     ? state.marcasDisponiveis.filter(m => salvo.marcas.includes(String(m.id))).map(m=>({id:String(m.id),name:m.name}))
@@ -439,6 +531,10 @@ function renderizarSelecao() {
   state.categoriasSelecionadas = salvo.categorias
     ? state.categoriasDisponiveis.filter(c => salvo.categorias.includes(String(c.id))).map(c=>({id:String(c.id),name:c.name,path:c.path||c.name}))
     : [];
+
+  // Limpar campos de busca ao entrar na tela
+  document.getElementById('search-marcas').value = '';
+  document.getElementById('search-categorias').value = '';
 
   renderizarListaMarcas('');
   renderizarListaCategorias('');
@@ -448,48 +544,51 @@ function renderizarSelecao() {
 
 function renderizarListaMarcas(filtro) {
   const el = document.getElementById('lista-marcas');
-  const term = filtro.toLowerCase();
+  const term = filtro.toLowerCase().trim();
   const lista = state.marcasDisponiveis.filter(m => !term || m.name.toLowerCase().includes(term));
-  if (!lista.length) { el.innerHTML='<div class="sel-empty">Nenhuma marca encontrada</div>'; return; }
+  if (!lista.length) { el.innerHTML = '<div class="sel-empty">Nenhuma marca encontrada</div>'; return; }
   el.innerHTML = lista.map(m => {
-    const checked = state.marcasSelecionadas.some(s => String(s.id)===String(m.id)) ? 'checked' : '';
+    const checked = state.marcasSelecionadas.some(s => String(s.id) === String(m.id)) ? 'checked' : '';
     return `<label class="selection-item">
-      <input type="checkbox" data-tipo="marca" data-id="${m.id}" data-name="${m.name}" ${checked} onchange="toggleItem('marca',this)">
-      <span class="selection-item-name">${destacar(m.name, term)}</span>
+      <input type="checkbox" data-tipo="marca" data-id="${m.id}" data-name="${escHtml(m.name)}" ${checked} onchange="toggleItem('marca',this)">
+      <span class="selection-item-name">${destacar(escHtml(m.name), term)}</span>
     </label>`;
   }).join('');
 }
 
 function renderizarListaCategorias(filtro) {
   const el = document.getElementById('lista-categorias');
-  const term = filtro.toLowerCase();
+  const term = filtro.toLowerCase().trim();
   const lista = state.categoriasDisponiveis.filter(c => {
     const path = (c.path || c.name).toLowerCase();
-    const name = (c.name || '').toLowerCase();
-    return !term || path.includes(term) || name.includes(term);
+    return !term || path.includes(term);
   });
-  if (!lista.length) { el.innerHTML='<div class="sel-empty">Nenhuma categoria encontrada</div>'; return; }
+  if (!lista.length) { el.innerHTML = '<div class="sel-empty">Nenhuma categoria encontrada</div>'; return; }
   el.innerHTML = lista.map(c => {
-    const checked = state.categoriasSelecionadas.some(s => String(s.id)===String(c.id)) ? 'checked' : '';
+    const checked = state.categoriasSelecionadas.some(s => String(s.id) === String(c.id)) ? 'checked' : '';
     const path = c.path || c.name;
     const partes = path.split('/');
     const nome = partes.pop().trim();
-    const pai = partes.join(' / ').trim();
+    const pai = partes.map(p=>p.trim()).join(' / ');
+    const pathEsc = escHtml(path);
+    const nomeHtml = destacar(escHtml(nome), term);
+    const paiHtml = pai ? `<span class="sel-path">${destacar(escHtml(pai), term)}</span>` : '';
     return `<label class="selection-item">
-      <input type="checkbox" data-tipo="categoria" data-id="${c.id}" data-name="${c.name}" data-path="${path}" ${checked} onchange="toggleItem('categoria',this)">
-      <span class="selection-item-name">
-        ${pai ? `<span class="selection-item-path">${destacar(pai, term)}</span>` : ''}
-        ${destacar(nome, term)}
-      </span>
+      <input type="checkbox" data-tipo="categoria" data-id="${c.id}" data-name="${escHtml(c.name)}" data-path="${pathEsc}" ${checked} onchange="toggleItem('categoria',this)">
+      <span class="selection-item-name">${paiHtml}${nomeHtml}</span>
       <span class="selection-item-count">${c.totalProducts||''}</span>
     </label>`;
   }).join('');
 }
 
-function destacar(texto, term) {
-  if (!term) return texto;
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function destacar(html, term) {
+  if (!term) return html;
   const re = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-  return texto.replace(re, '<strong>$1</strong>');
+  return html.replace(re, '<strong>$1</strong>');
 }
 
 function filtrarLista(tipo) {
@@ -517,8 +616,10 @@ function renderizarChips() {
   const el = document.getElementById('selected-chips');
   const info = document.getElementById('selecao-info');
   const chips = [
-    ...state.marcasSelecionadas.map(m => `<span class="sel-chip">${m.name}<span class="sel-chip-x" onclick="removerChip('marca','${m.id}')">×</span></span>`),
-    ...state.categoriasSelecionadas.map(c => `<span class="sel-chip">${c.path||c.name}<span class="sel-chip-x" onclick="removerChip('categoria','${c.id}')">×</span></span>`),
+    ...state.marcasSelecionadas.map(m =>
+      `<span class="sel-chip"><span class="sel-chip-label">${escHtml(m.name)}</span><span class="sel-chip-x" onclick="removerChip('marca','${m.id}')">×</span></span>`),
+    ...state.categoriasSelecionadas.map(c =>
+      `<span class="sel-chip"><span class="sel-chip-label">${escHtml(c.path||c.name)}</span><span class="sel-chip-x" onclick="removerChip('categoria','${c.id}')">×</span></span>`),
   ];
   el.innerHTML = chips.join('');
   const total = state.marcasSelecionadas.length + state.categoriasSelecionadas.length;
@@ -526,7 +627,7 @@ function renderizarChips() {
     info.textContent = 'Selecione ao menos uma marca ou categoria para continuar.';
     info.style.background = 'var(--amber-bg)'; info.style.borderColor = '#f0d090';
   } else {
-    info.textContent = `${total} seleção(ões) — a busca trará apenas esses produtos.`;
+    info.textContent = `${total} seleção(ões) — somente esses produtos serão buscados.`;
     info.style.background = 'var(--green-bg)'; info.style.borderColor = '#a8d8a8';
   }
 }
@@ -534,7 +635,6 @@ function renderizarChips() {
 function removerChip(tipo, id) {
   if (tipo === 'marca') state.marcasSelecionadas = state.marcasSelecionadas.filter(s => s.id !== id);
   else state.categoriasSelecionadas = state.categoriasSelecionadas.filter(s => s.id !== id);
-  // Desmarcar checkbox correspondente
   const cb = document.querySelector(`[data-tipo=${tipo}][data-id="${id}"]`);
   if (cb) cb.checked = false;
   renderizarChips();
@@ -548,34 +648,31 @@ function atualizarBotaoBusca() {
 
 function toggleTodos(tipo) {
   if (tipo === 'marcas') {
-    const term = document.getElementById('search-marcas').value.toLowerCase();
-    const visiveis = state.marcasDisponiveis.filter(m => !term || m.name.toLowerCase().includes(term));
-    const todosChecados = visiveis.every(m => state.marcasSelecionadas.some(s => s.id === String(m.id)));
-    if (todosChecados) state.marcasSelecionadas = state.marcasSelecionadas.filter(s => !visiveis.some(m => String(m.id) === s.id));
-    else visiveis.forEach(m => { if (!state.marcasSelecionadas.some(s => s.id===String(m.id))) state.marcasSelecionadas.push({id:String(m.id),name:m.name}); });
+    const term = document.getElementById('search-marcas').value.toLowerCase().trim();
+    const vis = state.marcasDisponiveis.filter(m => !term || m.name.toLowerCase().includes(term));
+    const all = vis.every(m => state.marcasSelecionadas.some(s => s.id === String(m.id)));
+    if (all) state.marcasSelecionadas = state.marcasSelecionadas.filter(s => !vis.some(m => String(m.id) === s.id));
+    else vis.forEach(m => { if (!state.marcasSelecionadas.some(s => s.id===String(m.id))) state.marcasSelecionadas.push({id:String(m.id),name:m.name}); });
     renderizarListaMarcas(term);
   } else {
-    const term = document.getElementById('search-categorias').value.toLowerCase();
-    const visiveis = state.categoriasDisponiveis.filter(c => { const p=(c.path||c.name).toLowerCase(); return !term||p.includes(term)||(c.name||'').toLowerCase().includes(term); });
-    const todosChecados = visiveis.every(c => state.categoriasSelecionadas.some(s => s.id===String(c.id)));
-    if (todosChecados) state.categoriasSelecionadas = state.categoriasSelecionadas.filter(s => !visiveis.some(c => String(c.id)===s.id));
-    else visiveis.forEach(c => { if (!state.categoriasSelecionadas.some(s => s.id===String(c.id))) state.categoriasSelecionadas.push({id:String(c.id),name:c.name,path:c.path||c.name}); });
+    const term = document.getElementById('search-categorias').value.toLowerCase().trim();
+    const vis = state.categoriasDisponiveis.filter(c => { const p=(c.path||c.name).toLowerCase(); return !term||p.includes(term); });
+    const all = vis.every(c => state.categoriasSelecionadas.some(s => s.id===String(c.id)));
+    if (all) state.categoriasSelecionadas = state.categoriasSelecionadas.filter(s => !vis.some(c => String(c.id)===s.id));
+    else vis.forEach(c => { if (!state.categoriasSelecionadas.some(s => s.id===String(c.id))) state.categoriasSelecionadas.push({id:String(c.id),name:c.name,path:c.path||c.name}); });
     renderizarListaCategorias(term);
   }
   renderizarChips();
   atualizarBotaoBusca();
 }
 
-// ── BUSCA FILTRADA ──
+// ── BUSCA ──
 async function iniciarBusca() {
   if (state.carregando) return;
   state.carregando = true;
-
   const btn = document.getElementById('btn-buscar');
-  btn.disabled = true;
-  btn.textContent = 'Buscando...';
+  btn.disabled = true; btn.textContent = 'Buscando...';
 
-  // Salvar seleção
   localStorage.setItem(CONFIG.KEY_SELECAO, JSON.stringify({
     marcas: state.marcasSelecionadas.map(m => m.id),
     categorias: state.categoriasSelecionadas.map(c => c.id),
@@ -583,84 +680,40 @@ async function iniciarBusca() {
 
   try {
     const todosProdutos = [];
+    const idsVistos = new Set();
 
-    // Buscar por marca
     for (const marca of state.marcasSelecionadas) {
       const prods = await buscarComFiltro(`brandId=${marca.id}`);
-      todosProdutos.push(...prods);
+      prods.forEach(p => { if (!idsVistos.has(p.id)) { todosProdutos.push(p); idsVistos.add(p.id); }});
     }
-
-    // Buscar por categoria (evitar duplicatas)
-    const idsJaBuscados = new Set(todosProdutos.map(p => p.id));
     for (const cat of state.categoriasSelecionadas) {
       const prods = await buscarComFiltro(`categoryId=${cat.id}`);
-      prods.forEach(p => { if (!idsJaBuscados.has(p.id)) { todosProdutos.push(p); idsJaBuscados.add(p.id); }});
+      prods.forEach(p => { if (!idsVistos.has(p.id)) { todosProdutos.push(p); idsVistos.add(p.id); }});
     }
 
-    const normalizados = todosProdutos.map(normalizarProduto);
-    await iniciarApp(normalizados, false);
+    await iniciarApp(todosProdutos.map(normalizarProduto), false);
   } catch(e) {
     mostrarErro(e.message);
-    btn.disabled = false;
-    btn.textContent = 'Buscar produtos selecionados';
+    btn.disabled = false; btn.textContent = 'Buscar produtos selecionados';
   }
   state.carregando = false;
-}
-
-async function buscarComFiltro(filtro) {
-  const todos = [];
-  let offset = 0, pagina = 0;
-  while (pagina < CONFIG.MAX_PAGINAS) {
-    if (!podeCarregar()) { mostrarErro(`Limite de chamadas atingido. Dados parciais exibidos.`); break; }
-    let data;
-    try {
-      data = await apiFetch(`/products?limit=${CONFIG.PAGE_SIZE}&offset=${offset}&${filtro}`);
-    } catch(e) { throw e; }
-    const itens = data.content || [];
-    if (!itens.length) break;
-    todos.push(...itens);
-    if (itens.length < CONFIG.PAGE_SIZE) break;
-    offset += CONFIG.PAGE_SIZE;
-    pagina++;
-    await new Promise(r => setTimeout(r, CONFIG.DELAY_MS));
-  }
-  return todos;
-}
-
-// ── NORMALIZAÇÃO ──
-function normalizarProduto(p) {
-  const marca = (p.brand && p.brand.name) ? p.brand.name : (typeof p.brand === 'string' ? p.brand : '—');
-  const categoria = (p.category && p.category.name) ? p.category.name
-    : (p.category && p.category.path) ? p.category.path.split('/').pop() : '—';
-  const sku = (p.skus && p.skus[0] && p.skus[0].partnerId) || p.skuId || String(p.id) || '—';
-  const preco = parseFloat((p.skus && p.skus[0] && p.skus[0].price != null ? p.skus[0].price : null) || p.price || 0);
-  const estoque = parseInt((p.skus && p.skus[0] && p.skus[0].amount != null ? p.skus[0].amount : null) ?? p.stockQuantity ?? 0);
-  return { sku, nome: p.title || p.name || '—', marca, categoria, preco, estoque, anuncioML: detectarAnuncioML(p) };
-}
-
-function detectarAnuncioML(p) {
-  if (p.channels && Array.isArray(p.channels))
-    return p.channels.some(c => (c.channelName||'').toLowerCase().includes('mercado') && c.status === 'ACTIVE');
-  if (p.marketplaces && Array.isArray(p.marketplaces))
-    return p.marketplaces.some(m => (m.name||'').toLowerCase().includes('mercado') && m.active);
-  return null;
 }
 
 // ── DEMO ──
 function gerarDadosDemo() {
   return [
-    { sku:'PCY-RTX4070S', nome:'RTX 4070 Super 12GB', marca:'PCYES', categoria:'Placas de Vídeo', preco:3089, estoque:42, anuncioML:true },
-    { sku:'PCY-RTX4080', nome:'RTX 4080 16GB OC', marca:'PCYES', categoria:'Placas de Vídeo', preco:5299, estoque:17, anuncioML:true },
-    { sku:'PCY-RTX4090', nome:'RTX 4090 24GB Extreme', marca:'PCYES', categoria:'Placas de Vídeo', preco:9890, estoque:5, anuncioML:false },
-    { sku:'SH-5KW-BIF', nome:'Kit Solar 5kW Bifacial', marca:'SunHouse', categoria:'Energia Solar', preco:8740, estoque:9, anuncioML:false },
-    { sku:'SH-INV-3KW', nome:'Inversor Solar 3kW', marca:'SunHouse', categoria:'Energia Solar', preco:4100, estoque:11, anuncioML:false },
-    { sku:'MON-34CRV', nome:'Monitor Curvo 34" 165Hz', marca:'PCYES', categoria:'Monitores', preco:2190, estoque:22, anuncioML:false },
-    { sku:'VNK-NB-I7', nome:'Notebook i7 16GB 512GB', marca:'Vinik', categoria:'Notebooks', preco:3450, estoque:6, anuncioML:false },
-    { sku:'TON-GTR-PR', nome:'Guitarra Elétrica Premium', marca:'Tonante', categoria:'Instrumentos', preco:1890, estoque:14, anuncioML:false },
-    { sku:'VNK-KBD-MEC', nome:'Teclado Mecânico RGB', marca:'Vinik', categoria:'Periféricos', preco:349, estoque:67, anuncioML:true },
-    { sku:'PCY-PSU-850', nome:'Fonte 850W Gold Modular', marca:'PCYES', categoria:'Componentes', preco:699, estoque:24, anuncioML:true },
-    { sku:'JAG-SSD-1T', nome:'SSD NVMe 1TB M.2', marca:'Jaguara', categoria:'Armazenamento', preco:599, estoque:28, anuncioML:false },
-    { sku:'SH-PAIN-400', nome:'Painel Solar 400W', marca:'SunHouse', categoria:'Energia Solar', preco:920, estoque:45, anuncioML:false },
+    { sku:'PCY-RTX4070S', nome:'RTX 4070 Super 12GB GDDR6X', marca:'PCYES', categoria:'INFORMATICA/PLACAS DE VÍDEO', preco:3089, estoque:42, valor:129738, anuncioML:true },
+    { sku:'PCY-RTX4080', nome:'RTX 4080 16GB OC Edition', marca:'PCYES', categoria:'INFORMATICA/PLACAS DE VÍDEO', preco:5299, estoque:17, valor:90083, anuncioML:true },
+    { sku:'PCY-RTX4090', nome:'RTX 4090 24GB Extreme', marca:'PCYES', categoria:'INFORMATICA/PLACAS DE VÍDEO', preco:9890, estoque:5, valor:49450, anuncioML:false },
+    { sku:'SH-5KW-BIF', nome:'Kit Solar 5kW Bifacial Completo', marca:'SunHouse', categoria:'ENERGIA SOLAR', preco:8740, estoque:9, valor:78660, anuncioML:false },
+    { sku:'SH-INV-3KW', nome:'Inversor Solar On-Grid 3kW', marca:'SunHouse', categoria:'ENERGIA SOLAR', preco:4100, estoque:11, valor:45100, anuncioML:false },
+    { sku:'MON-34CRV', nome:'Monitor Curvo 34" 165Hz UWQHD', marca:'PCYES', categoria:'INFORMATICA/MONITORES', preco:2190, estoque:22, valor:48180, anuncioML:false },
+    { sku:'VNK-NB-I7', nome:'Notebook Core i7 16GB 512GB', marca:'Vinik', categoria:'INFORMATICA/NOTEBOOKS', preco:3450, estoque:6, valor:20700, anuncioML:false },
+    { sku:'TON-GTR-PR', nome:'Guitarra Elétrica Premium', marca:'Tonante', categoria:'INSTRUMENTOS', preco:1890, estoque:14, valor:26460, anuncioML:false },
+    { sku:'VNK-KBD-MEC', nome:'Teclado Mecânico RGB Gamer', marca:'Vinik', categoria:'INFORMATICA/PERIFÉRICOS', preco:349, estoque:67, valor:23383, anuncioML:true },
+    { sku:'PCY-PSU-850', nome:'Fonte 850W 80 Plus Gold Modular', marca:'PCYES', categoria:'INFORMATICA/COMPONENTES', preco:699, estoque:24, valor:16776, anuncioML:true },
+    { sku:'JAG-SSD-1T', nome:'SSD NVMe 1TB M.2 Gen4', marca:'Jaguara', categoria:'INFORMATICA/ARMAZENAMENTO', preco:599, estoque:28, valor:16772, anuncioML:false },
+    { sku:'SH-PAIN-400', nome:'Painel Solar Monocristalino 400W', marca:'SunHouse', categoria:'ENERGIA SOLAR', preco:920, estoque:45, valor:41400, anuncioML:false },
   ];
 }
 
@@ -692,39 +745,65 @@ function getFiltros() {
 function aplicarFiltros() {
   const f = getFiltros();
   state.filtrados = state.produtos.filter(p =>
-    (!f.marca || p.marca===f.marca) && (!f.cat || p.categoria===f.cat) &&
-    p.preco >= f.ticket && p.estoque >= f.estoque
+    (!f.marca || p.marca === f.marca) &&
+    (!f.cat || p.categoria === f.cat) &&
+    p.preco >= f.ticket &&
+    p.estoque >= f.estoque
   );
   renderizar();
 }
 
 function limparFiltros() {
-  document.getElementById('f-marca').value='';
-  document.getElementById('f-cat').value='';
-  document.getElementById('f-ticket').value=500;
-  document.getElementById('f-ticket-val').textContent='R$ 500';
-  document.getElementById('f-estoque').value=5;
+  document.getElementById('f-marca').value = '';
+  document.getElementById('f-cat').value = '';
+  document.getElementById('f-ticket').value = 500;
+  document.getElementById('f-ticket-val').textContent = 'R$ 500';
+  document.getElementById('f-estoque').value = 5;
   aplicarFiltros();
 }
 
-// ── FILTROS ATIVOS (chips) ──
-function renderizarFiltrosAtivos() {
-  const el = document.getElementById('active-filters');
-  const chips = [];
-  state.marcasSelecionadas.forEach(m => chips.push(`<span class="af-chip">${m.name}</span>`));
-  state.categoriasSelecionadas.forEach(c => chips.push(`<span class="af-chip">${c.name}</span>`));
-  if (!chips.length) { el.style.display='none'; return; }
-  el.style.display='flex';
-  el.innerHTML = `<span class="af-label">Buscando em:</span>${chips.join('')}<span class="af-edit" onclick="editarSelecao()">editar</span>`;
+// ── ORDENAÇÃO ──
+function sortTabela(tabela, campo) {
+  const s = state.sort[tabela];
+  s.dir = (s.campo === campo && s.dir === 'desc') ? 'asc' : 'desc';
+  s.campo = campo;
+  // Atualizar headers
+  document.querySelectorAll(`#tbl-${tabela} th`).forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.getAttribute('onclick') === `sortTabela('${tabela}','${campo}')`)
+      th.classList.add(s.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+  renderizar();
+}
+
+function ordenarLista(lista, campo, dir) {
+  return [...lista].sort((a, b) => {
+    let va = a[campo], vb = b[campo];
+    if (campo === 'valor') { va = a.preco * a.estoque; vb = b.preco * b.estoque; }
+    if (campo === 'receita') { va = a.preco * a.estoque; vb = b.preco * b.estoque; }
+    if (typeof va === 'string') return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return dir === 'asc' ? va - vb : vb - va;
+  });
 }
 
 // ── RENDERIZAÇÃO ──
+function renderizarFiltrosAtivos() {
+  const el = document.getElementById('active-filters');
+  const chips = [
+    ...state.marcasSelecionadas.map(m => `<span class="af-chip">${escHtml(m.name)}</span>`),
+    ...state.categoriasSelecionadas.map(c => `<span class="af-chip">${escHtml(c.path||c.name)}</span>`),
+  ];
+  if (!chips.length) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = `<span class="af-label">Buscando em:</span>${chips.join('')}<span class="af-edit" onclick="editarSelecao()">editar</span>`;
+}
+
 function renderizar() {
   const f = getFiltros();
   const todos = state.filtrados;
   const opps = todos.filter(p => p.preco >= f.ticket && p.estoque >= Math.max(1, f.estoque));
   const semAnuncio = todos.filter(p => p.anuncioML === false && p.estoque > 0);
-  const receitaPerdida = semAnuncio.reduce((a,p) => a + p.preco * p.estoque, 0);
+  const valorTotal = todos.reduce((a,p) => a + p.valor, 0);
 
   document.getElementById('kpi-total').textContent = todos.length;
   document.getElementById('kpi-total-sub').textContent = `de ${state.produtos.length} SKUs carregados`;
@@ -732,31 +811,58 @@ function renderizar() {
   document.getElementById('kpi-opp-sub').textContent = `ticket ≥ R$ ${f.ticket.toLocaleString('pt-BR')}`;
   document.getElementById('kpi-sem').textContent = semAnuncio.length;
   document.getElementById('kpi-sem-sub').textContent = semAnuncio.length > 0 ? 'com estoque disponível' : 'nenhum identificado';
-  document.getElementById('kpi-receita').textContent = receitaPerdida > 0
-    ? 'R$ ' + receitaPerdida.toLocaleString('pt-BR', {maximumFractionDigits:0}) : '—';
+  document.getElementById('kpi-valor').textContent = valorTotal > 0
+    ? 'R$ ' + valorTotal.toLocaleString('pt-BR', {maximumFractionDigits:0}) : '—';
   document.getElementById('badge-opp').textContent = opps.length;
   document.getElementById('badge-sem').textContent = semAnuncio.length;
   document.getElementById('filter-count').textContent = `${todos.length} produto${todos.length!==1?'s':''} visíveis`;
 
-  renderTabela('tbody-opp', opps.sort((a,b)=>b.preco-a.preco), 'opp');
-  renderTabela('tbody-sem', semAnuncio.sort((a,b)=>(b.preco*b.estoque)-(a.preco*a.estoque)), 'sem');
+  const so = state.sort.opp, ss = state.sort.sem;
+  renderTabela('tbody-opp', ordenarLista(opps, so.campo, so.dir), 'opp');
+  renderTabela('tbody-sem', ordenarLista(semAnuncio, ss.campo, ss.dir), 'sem');
 }
 
-function renderTabela(id, lista, tipo) {
-  const tbody = document.getElementById(id);
-  if (!lista.length) { tbody.innerHTML=`<tr><td colspan="7" class="empty-state">Nenhum produto com os filtros atuais.</td></tr>`; return; }
+function fmtBRL(v) { return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtBRLint(v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+
+function renderTabela(tbodyId, lista, tipo) {
+  const tbody = document.getElementById(tbodyId);
+  const cols = tipo === 'opp' ? 8 : 8;
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="${cols}" class="empty-state">Nenhum produto com os filtros atuais.</td></tr>`;
+    return;
+  }
   tbody.innerHTML = lista.map(p => {
-    const pFmt = 'R$ '+p.preco.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const eCls = p.estoque<=5?'stock-low':'stock-ok';
-    const ml = p.anuncioML===true ? '<span class="badge badge-green">Anunciado</span>'
-      : p.anuncioML===false ? '<span class="badge badge-red">Sem anúncio</span>'
-      : '<span class="badge badge-amber">Desconhecido</span>';
-    if (tipo==='opp') {
-      const valEst = 'R$ '+(p.preco*p.estoque).toLocaleString('pt-BR',{maximumFractionDigits:0});
-      return `<tr><td class="td-mono">${p.sku}</td><td>${p.nome}</td><td>${p.marca}</td><td>${p.categoria}</td><td class="td-price">${pFmt}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${valEst}</td><td>${ml}</td></tr>`;
+    const eCls = p.estoque <= 5 ? 'stock-low' : 'stock-ok';
+    const ml = p.anuncioML === true
+      ? '<span class="badge badge-green">Anunciado</span>'
+      : p.anuncioML === false
+        ? '<span class="badge badge-red">Sem anúncio</span>'
+        : '<span class="badge badge-amber">Desconhecido</span>';
+    const val = fmtBRLint(p.preco * p.estoque);
+    if (tipo === 'opp') {
+      return `<tr>
+        <td class="td-mono">${escHtml(p.sku)}</td>
+        <td class="td-nome"><span class="td-nome-text" title="${escHtml(p.nome)}">${escHtml(p.nome)}</span></td>
+        <td>${escHtml(p.marca)}</td>
+        <td>${escHtml(p.categoria)}</td>
+        <td class="td-price">${fmtBRL(p.preco)}</td>
+        <td class="td-right ${eCls}">${p.estoque} un.</td>
+        <td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td>
+        <td>${ml}</td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td class="td-mono">${escHtml(p.sku)}</td>
+        <td class="td-nome"><span class="td-nome-text" title="${escHtml(p.nome)}">${escHtml(p.nome)}</span></td>
+        <td>${escHtml(p.marca)}</td>
+        <td>${escHtml(p.categoria)}</td>
+        <td class="td-price">${fmtBRL(p.preco)}</td>
+        <td class="td-right ${eCls}">${p.estoque} un.</td>
+        <td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td>
+        <td class="td-right" style="font-weight:600;color:var(--green)">${val}</td>
+      </tr>`;
     }
-    const rec = 'R$ '+(p.preco*p.estoque).toLocaleString('pt-BR',{maximumFractionDigits:0});
-    return `<tr><td class="td-mono">${p.sku}</td><td>${p.nome}</td><td>${p.marca}</td><td>${p.categoria}</td><td class="td-price">${pFmt}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${rec}</td><td class="td-right" style="font-weight:600;color:var(--green)">${rec}</td></tr>`;
   }).join('');
 }
 
@@ -765,20 +871,20 @@ async function iniciarApp(produtos, isDemo) {
   state.isDemo = isDemo;
   state.produtos = produtos;
   state.filtrados = produtos;
-  document.getElementById('setup-screen').style.display='none';
-  document.getElementById('app').style.display='block';
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
   popularFiltrosDash(produtos);
   renderizarFiltrosAtivos();
   aplicarFiltros();
   atualizarRateBar();
   atualizarUltimoRefresh();
-  setStatus(isDemo?'demo':'live', isDemo?'Modo demo':'Conectado');
-  document.getElementById('refresh-btn').disabled=false;
+  setStatus(isDemo ? 'demo' : 'live', isDemo ? 'Modo demo' : 'Conectado');
+  document.getElementById('refresh-btn').disabled = false;
 }
 
 function iniciarDemo() {
   carregarChamadas();
-  state.marcasSelecionadas = [{id:'demo',name:'Demo'}];
+  state.marcasSelecionadas = [{id:'demo', name:'Demo'}];
   state.categoriasSelecionadas = [];
   iniciarApp(gerarDadosDemo(), true);
 }
@@ -787,81 +893,81 @@ async function recarregarDados() {
   if (state.isDemo) { iniciarApp(gerarDadosDemo(), true); return; }
   if (state.carregando) return;
   if (!podeFazerRefresh()) {
-    const diff = Math.ceil(CONFIG.COOLDOWN_MIN-(Date.now()-state.ultimo_refresh)/60000);
-    document.getElementById('cooldown-msg').textContent=`Aguarde ${diff} min antes do próximo refresh.`;
-    document.getElementById('cooldown-bar').style.display='flex';
-    setTimeout(()=>{document.getElementById('cooldown-bar').style.display='none';},5000);
+    const diff = Math.ceil(CONFIG.COOLDOWN_MIN - (Date.now() - state.ultimo_refresh) / 60000);
+    document.getElementById('cooldown-msg').textContent = `Aguarde ${diff} min antes do próximo refresh.`;
+    document.getElementById('cooldown-bar').style.display = 'flex';
+    setTimeout(() => { document.getElementById('cooldown-bar').style.display = 'none'; }, 5000);
     return;
   }
-  state.carregando=true;
-  const btn=document.getElementById('refresh-btn');
-  btn.disabled=true; btn.textContent='Atualizando...';
+  state.carregando = true;
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true; btn.textContent = 'Atualizando...';
   try {
-    const todos=[];
-    for (const m of state.marcasSelecionadas) todos.push(...await buscarComFiltro(`brandId=${m.id}`));
-    const ids=new Set(todos.map(p=>p.id));
-    for (const c of state.categoriasSelecionadas) {
-      const p=await buscarComFiltro(`categoryId=${c.id}`);
-      p.forEach(x=>{if(!ids.has(x.id)){todos.push(x);ids.add(x.id);}});
+    const todos = [], ids = new Set();
+    for (const m of state.marcasSelecionadas) {
+      (await buscarComFiltro(`brandId=${m.id}`)).forEach(p => { if (!ids.has(p.id)) { todos.push(p); ids.add(p.id); }});
     }
-    state.produtos=todos.map(normalizarProduto);
+    for (const c of state.categoriasSelecionadas) {
+      (await buscarComFiltro(`categoryId=${c.id}`)).forEach(p => { if (!ids.has(p.id)) { todos.push(p); ids.add(p.id); }});
+    }
+    state.produtos = todos.map(normalizarProduto);
     popularFiltrosDash(state.produtos);
     aplicarFiltros();
     atualizarUltimoRefresh();
   } catch(e) { mostrarErro(e.message); }
-  state.carregando=false;
-  btn.disabled=false; btn.textContent='Atualizar';
+  state.carregando = false;
+  btn.disabled = false; btn.textContent = 'Atualizar';
 }
 
 function editarSelecao() {
-  document.getElementById('app').style.display='none';
-  document.getElementById('setup-screen').style.display='flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
   irParaStep('step-selecao');
 }
 
 function sair() {
   localStorage.removeItem(CONFIG.KEY_TOKEN);
-  state.token=null; state.produtos=[];
-  document.getElementById('app').style.display='none';
-  document.getElementById('setup-screen').style.display='flex';
-  document.getElementById('token-input').value='';
+  state.token = null; state.produtos = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('token-input').value = '';
   irParaStep('step-token');
 }
 
 function voltarStep1() { irParaStep('step-token'); }
 
 function irParaStep(id) {
-  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
 function setStatus(tipo, txt) {
-  const pill=document.getElementById('status-pill');
-  pill.className='status-pill '+(tipo==='live'?'status-live':tipo==='demo'?'status-demo':'status-loading');
-  document.getElementById('status-text').textContent=txt;
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + (tipo==='live' ? 'status-live' : tipo==='demo' ? 'status-demo' : 'status-loading');
+  document.getElementById('status-text').textContent = txt;
 }
 
 function mostrarErro(msg) {
-  const el=document.getElementById('error-bar');
-  document.getElementById('error-msg').textContent=msg;
-  el.style.display='flex';
-  setTimeout(()=>{el.style.display='none';},8000);
+  const el = document.getElementById('error-bar');
+  document.getElementById('error-msg').textContent = msg;
+  el.style.display = 'flex';
+  setTimeout(() => { el.style.display = 'none'; }, 8000);
 }
 
 function atualizarUltimoRefresh() {
-  state.ultimo_refresh=Date.now();
+  state.ultimo_refresh = Date.now();
   localStorage.setItem(CONFIG.KEY_LAST, state.ultimo_refresh);
-  const h=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('last-update-txt').textContent=`Atualizado às ${h}`;
+  const h = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('last-update-txt').textContent = `Atualizado às ${h}`;
 }
 
 // ── INIT ──
 (function init() {
   carregarChamadas();
-  const t=localStorage.getItem(CONFIG.KEY_TOKEN);
-  if (t) document.getElementById('token-input').value=t;
-  const ul=localStorage.getItem(CONFIG.KEY_LAST);
-  if (ul) state.ultimo_refresh=parseInt(ul);
+  const t = localStorage.getItem(CONFIG.KEY_TOKEN);
+  if (t) document.getElementById('token-input').value = t;
+  const ul = localStorage.getItem(CONFIG.KEY_LAST);
+  if (ul) state.ultimo_refresh = parseInt(ul);
 })();
 </script>
 </body>
