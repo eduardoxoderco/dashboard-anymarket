@@ -345,6 +345,20 @@ function podeFazerRefresh() {
 }
 
 // ── FETCH HELPER ──
+async function fetchTodas(endpoint) {
+  const todas = [];
+  let offset = 0;
+  while (true) {
+    const data = await apiFetch(`${endpoint}?limit=100&offset=${offset}`);
+    const itens = data.content || [];
+    todas.push(...itens);
+    if (itens.length < 100) break;
+    offset += 100;
+    await new Promise(r => setTimeout(r, 300));
+  }
+  return todas;
+}
+
 async function apiFetch(path) {
   if (!podeCarregar()) throw new Error(`Limite de ${CONFIG.MAX_CHAMADAS_DIA} chamadas diárias atingido.`);
   const resp = await fetch(CONFIG.BASE_URL + path, { headers: { 'gumgaToken': state.token } });
@@ -368,14 +382,14 @@ async function carregarMarcasCategorias() {
   document.getElementById('load-marcas-cats').style.display = 'flex';
 
   try {
-    const [rMarcas, rCats] = await Promise.all([
-      apiFetch('/brands?limit=100&offset=0'),
-      apiFetch('/categories?limit=100&offset=0'),
+    const [marcasBruto, catsBruto] = await Promise.all([
+      fetchTodas('/brands'),
+      fetchTodas('/categories'),
     ]);
-    state.marcasDisponiveis = (rMarcas.content || []).sort((a,b) => a.name.localeCompare(b.name));
-    state.categoriasDisponiveis = (rCats.content || [])
-      .filter(c => c.totalProducts > 0)
-      .sort((a,b) => b.totalProducts - a.totalProducts);
+    state.marcasDisponiveis = marcasBruto.sort((a,b) => a.name.localeCompare(b.name));
+    state.categoriasDisponiveis = catsBruto
+      .filter(c => (c.totalProducts || 0) > 0)
+      .sort((a,b) => (a.path||a.name).localeCompare(b.path||b.name));
 
     renderizarSelecao();
     irParaStep('step-selecao');
