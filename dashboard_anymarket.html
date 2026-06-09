@@ -382,13 +382,39 @@ async function carregarMarcasCategorias() {
   document.getElementById('load-marcas-cats').style.display = 'flex';
 
   try {
-    const [marcasBruto, catsBruto] = await Promise.all([
-      fetchTodas('/brands'),
-      fetchTodas('/categories'),
-    ]);
+    // Busca marcas via endpoint dedicado
+    const marcasBruto = await fetchTodas('/brands');
     state.marcasDisponiveis = marcasBruto.sort((a,b) => a.name.localeCompare(b.name));
-    state.categoriasDisponiveis = catsBruto
-      .filter(c => (c.totalProducts || 0) > 0)
+
+    // Categorias: extrai dos produtos (endpoint /categories omite subcategorias)
+    // Busca uma amostra de produtos para mapear categorias reais
+    document.querySelector('#load-marcas-cats span').textContent = 'Mapeando categorias reais...';
+    const catMap = new Map();
+    let offset = 0;
+    while (offset < 500) {
+      if (!podeCarregar()) break;
+      const data = await apiFetch(`/products?limit=100&offset=${offset}`);
+      const itens = data.content || [];
+      if (!itens.length) break;
+      itens.forEach(p => {
+        if (p.category && p.category.id) {
+          const key = String(p.category.id);
+          if (!catMap.has(key)) {
+            catMap.set(key, {
+              id: p.category.id,
+              name: p.category.name || p.category.path,
+              path: p.category.path || p.category.name,
+              totalProducts: 0,
+            });
+          }
+          catMap.get(key).totalProducts++;
+        }
+      });
+      if (itens.length < 100) break;
+      offset += 100;
+      await new Promise(r => setTimeout(r, 400));
+    }
+    state.categoriasDisponiveis = [...catMap.values()]
       .sort((a,b) => (a.path||a.name).localeCompare(b.path||b.name));
 
     renderizarSelecao();
