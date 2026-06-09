@@ -122,7 +122,10 @@
   .section-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--accent-light); color: var(--accent); font-weight: 500; }
   .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; min-width: 780px; }
-  thead th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; }
+  thead th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; cursor: pointer; user-select: none; }
+  thead th:hover { color: var(--accent); }
+  thead th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
   tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--surface2); }
@@ -284,16 +287,32 @@
       <span class="section-badge" id="badge-opp">0</span>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>SKU</th><th>Produto</th><th>Marca</th><th>Categoria</th><th style="text-align:right">Preço</th><th style="text-align:right">Estoque</th><th style="text-align:right">Valor em estoque</th><th>Status ML</th></tr></thead>
-      <tbody id="tbody-opp"></tbody></table>
+      <table id="tbl-opp"><thead><tr>
+        <th onclick="sortTabela('opp','sku')">SKU</th>
+        <th onclick="sortTabela('opp','nome')">Produto</th>
+        <th onclick="sortTabela('opp','marca')">Marca</th>
+        <th onclick="sortTabela('opp','categoria')">Categoria</th>
+        <th style="text-align:right" onclick="sortTabela('opp','preco')">Preço</th>
+        <th style="text-align:right" onclick="sortTabela('opp','estoque')">Estoque</th>
+        <th style="text-align:right" onclick="sortTabela('opp','valor')">Valor em estoque</th>
+        <th onclick="sortTabela('opp','anuncioML')">Status ML</th>
+      </tr></thead><tbody id="tbody-opp"></tbody></table>
     </div>
     <div class="section-header">
       <div class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Produtos sem anúncio no Mercado Livre</div>
       <span class="section-badge" id="badge-sem">0</span>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>SKU</th><th>Produto</th><th>Marca</th><th>Categoria</th><th style="text-align:right">Preço</th><th style="text-align:right">Estoque</th><th style="text-align:right">Valor em estoque</th><th style="text-align:right">Receita potencial</th></tr></thead>
-      <tbody id="tbody-sem"></tbody></table>
+      <table id="tbl-sem"><thead><tr>
+        <th onclick="sortTabela('sem','sku')">SKU</th>
+        <th onclick="sortTabela('sem','nome')">Produto</th>
+        <th onclick="sortTabela('sem','marca')">Marca</th>
+        <th onclick="sortTabela('sem','categoria')">Categoria</th>
+        <th style="text-align:right" onclick="sortTabela('sem','preco')">Preço</th>
+        <th style="text-align:right" onclick="sortTabela('sem','estoque')">Estoque</th>
+        <th style="text-align:right" onclick="sortTabela('sem','valor')">Valor em estoque</th>
+        <th style="text-align:right" onclick="sortTabela('sem','valor')">Receita potencial</th>
+      </tr></thead><tbody id="tbody-sem"></tbody></table>
     </div>
     <div class="footer">Dashboard ANYMARKET · Token armazenado apenas localmente · Dados conforme última sincronização</div>
   </div>
@@ -315,6 +334,7 @@ let state = {
   marcasDisponiveis: [], marcasSelecionadas: [],
   chamadas: 0, chamadas_data: null,
   ultimo_refresh: null, carregando: false,
+  sort: { opp: {campo:'preco',dir:'desc'}, sem: {campo:'valor',dir:'desc'} },
 };
 
 // ── UTILS ──
@@ -698,6 +718,28 @@ function renderizarFiltrosAtivos(){
   el.innerHTML=`<span class="af-label">Filtros:</span>${chips.join('')}<span class="af-edit" onclick="editarSelecao()">editar</span>`;
 }
 
+function sortTabela(tabela, campo) {
+  const s = state.sort[tabela];
+  s.dir = (s.campo === campo && s.dir === 'desc') ? 'asc' : 'desc';
+  s.campo = campo;
+  document.querySelectorAll(`#tbl-${tabela} th`).forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.getAttribute('onclick') === `sortTabela('${tabela}','${campo}')`)
+      th.classList.add(s.dir==='asc'?'sort-asc':'sort-desc');
+  });
+  renderizar();
+}
+
+function ordenar(lista, campo, dir) {
+  return [...lista].sort((a,b) => {
+    let va=a[campo], vb=b[campo];
+    if(campo==='valor'||campo==='receita') { va=a.preco*a.estoque; vb=b.preco*b.estoque; }
+    if(campo==='anuncioML') { va=va===true?0:va===false?1:2; vb=vb===true?0:vb===false?1:2; }
+    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    return dir==='asc'?va-vb:vb-va;
+  });
+}
+
 function renderizar(){
   const f=getFiltros();
   const todos=state.filtrados;
@@ -714,8 +756,9 @@ function renderizar(){
   document.getElementById('badge-opp').textContent=opps.length;
   document.getElementById('badge-sem').textContent=semAnuncio.length;
   document.getElementById('filter-count').textContent=`${todos.length} produto${todos.length!==1?'s':''} visíveis`;
-  renderTabela('tbody-opp',opps.sort((a,b)=>b.preco-a.preco),'opp');
-  renderTabela('tbody-sem',semAnuncio.sort((a,b)=>(b.preco*b.estoque)-(a.preco*a.estoque)),'sem');
+  const so=state.sort.opp, ss=state.sort.sem;
+  renderTabela('tbody-opp', ordenar(opps, so.campo, so.dir), 'opp');
+  renderTabela('tbody-sem', ordenar(semAnuncio, ss.campo, ss.dir), 'sem');
 }
 
 function renderTabela(tbodyId,lista,tipo){
