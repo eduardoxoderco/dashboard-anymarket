@@ -742,8 +742,15 @@ async function buscarPrecosML(produtos) {
         const premium = anunciosML.find(x => x.fields?.listing_type_id === 'gold_pro');
         // Fallback: qualquer anúncio ML ativo
         const qualquer = anunciosML[0];
-        p.precoClassico = classico?.price || null;
-        p.precoPremium = premium?.price || qualquer?.price || null;
+        // discountPrice = preço Por (praticado); price = preço De (original)
+        // marketplace_sale_price = preço Por (visível ao comprador no ML)
+        const getPreco = x => {
+          if (!x) return null;
+          const salePx = parseFloat(x.fields?.marketplace_sale_price);
+          return (salePx && !isNaN(salePx)) ? salePx : (x.discountPrice || x.price || null);
+        };
+        p.precoClassico = getPreco(classico);
+        p.precoPremium = getPreco(premium) || getPreco(qualquer);
         p.anuncioML = anunciosML.length > 0 ? true : (ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length > 0 ? false : null);
         // Recalcula valor com média dos preços ML se disponíveis
         if (p.precoClassico && p.precoPremium) {
