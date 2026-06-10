@@ -292,7 +292,7 @@
         <th onclick="sortTabela('opp','nome')">Produto</th>
         <th onclick="sortTabela('opp','marca')">Marca</th>
         <th onclick="sortTabela('opp','categoria')">Categoria</th>
-        <th style="text-align:right" onclick="sortTabela('opp','preco')">Preço</th>
+        <th style="text-align:right" onclick="sortTabela('opp','preco')">Preço ML</th>
         <th style="text-align:right" onclick="sortTabela('opp','estoque')">Estoque</th>
         <th style="text-align:right" onclick="sortTabela('opp','valor')">Valor em estoque</th>
         <th onclick="sortTabela('opp','anuncioML')">Status ML</th>
@@ -308,7 +308,7 @@
         <th onclick="sortTabela('sem','nome')">Produto</th>
         <th onclick="sortTabela('sem','marca')">Marca</th>
         <th onclick="sortTabela('sem','categoria')">Categoria</th>
-        <th style="text-align:right" onclick="sortTabela('sem','preco')">Preço</th>
+        <th style="text-align:right" onclick="sortTabela('sem','preco')">Preço ML</th>
         <th style="text-align:right" onclick="sortTabela('sem','estoque')">Estoque</th>
         <th style="text-align:right" onclick="sortTabela('sem','valor')">Valor em estoque</th>
         <th style="text-align:right" onclick="sortTabela('sem','valor')">Receita potencial</th>
@@ -413,11 +413,14 @@ function normalizarProduto(p) {
   const marca = p.brand?.name||(typeof p.brand==='string'?p.brand:'—');
   const categoria = p.category?.path||p.category?.name||'—';
   const sku = p.skus?.[0]?.partnerId||p.skuId||String(p.id)||'—';
+  const skuApiId = p.skus?.[0]?.id||null;
   const preco = parseFloat(p.skus?.[0]?.price??p.price??0);
   const estoque = parseInt(p.skus?.[0]?.amount??p.stockQuantity??0);
-  return {sku, nome:p.title||p.name||'—', marca, categoria,
+  return {sku, skuApiId, nome:p.title||p.name||'—', marca, categoria,
     marcaId:String(p.brand?.id||''), catId:String(p.category?.id||''),
-    preco, estoque, valor:preco*estoque, anuncioML:detectarAnuncioML(p)};
+    preco, estoque, valor:preco*estoque,
+    precoClassico:null, precoPremium:null, loadingML:false,
+    anuncioML:detectarAnuncioML(p)};
 }
 
 function detectarAnuncioML(p) {
@@ -718,6 +721,46 @@ function renderizarFiltrosAtivos(){
   el.innerHTML=`<span class="af-label">Filtros:</span>${chips.join('')}<span class="af-edit" onclick="editarSelecao()">editar</span>`;
 }
 
+// ── PREÇOS ML ──
+async function buscarPrecosML(produtos) {
+  const LOTE = 5;
+  for (let i = 0; i < produtos.length; i += LOTE) {
+    const lote = produtos.slice(i, i + LOTE);
+    await Promise.all(lote.map(async p => {
+      if (!p.skuApiId || !podeCarregar()) return;
+      try {
+        const resp = await fetch(`${CONFIG.BASE_URL}/skus/${p.skuApiId}/marketplaces`, {
+          headers: {'gumgaToken': state.token}
+        });
+        registrarChamada(1);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const ml = Array.isArray(data) ? data : (data.content||[]);
+        const anunciosML = ml.filter(x => x.marketPlace === 'MERCADO_LIVRE' && x.publicationStatus === 'ACTIVE');
+        // Pega preço por tipo de listagem
+        const classico = anunciosML.find(x => x.fields?.listing_type_id === 'gold_special');
+        const premium = anunciosML.find(x => x.fields?.listing_type_id === 'gold_pro');
+        // Fallback: qualquer anúncio ML ativo
+        const qualquer = anunciosML[0];
+        p.precoClassico = classico?.price || null;
+        p.precoPremium = premium?.price || qualquer?.price || null;
+        p.anuncioML = anunciosML.length > 0 ? true : (ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length > 0 ? false : null);
+        // Recalcula valor com média dos preços ML se disponíveis
+        if (p.precoClassico && p.precoPremium) {
+          p.valor = ((p.precoClassico + p.precoPremium) / 2) * p.estoque;
+        } else if (p.precoPremium) {
+          p.valor = p.precoPremium * p.estoque;
+        } else if (p.precoClassico) {
+          p.valor = p.precoClassico * p.estoque;
+        }
+      } catch(e) { /* silencioso */ }
+    }));
+    // Re-renderiza após cada lote para atualização progressiva
+    aplicarFiltros();
+    await delay(400);
+  }
+}
+
 function sortTabela(tabela, campo) {
   const s = state.sort[tabela];
   s.dir = (s.campo === campo && s.dir === 'desc') ? 'asc' : 'desc';
@@ -761,15 +804,27 @@ function renderizar(){
   renderTabela('tbody-sem', ordenar(semAnuncio, ss.campo, ss.dir), 'sem');
 }
 
+function renderPrecoML(p) {
+  if (!p.skuApiId) return `<span style="color:var(--text3);font-size:11px;">—</span>`;
+  if (p.precoClassico === null && p.precoPremium === null) {
+    return `<span style="color:var(--text3);font-size:10px;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border:1.5px solid var(--accent);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite"></span>carregando</span>`;
+  }
+  const cls = p.precoClassico ? `<div style="font-size:11px;color:var(--text2)"><span style="font-size:9px;color:var(--text3);display:block">Clássico</span>${fmtBRL(p.precoClassico)}</div>` : '';
+  const prm = p.precoPremium ? `<div style="font-size:11px;color:var(--text)"><span style="font-size:9px;color:var(--text3);display:block">Premium</span><strong>${fmtBRL(p.precoPremium)}</strong></div>` : '';
+  if (!cls && !prm) return `<span style="color:var(--text3);font-size:11px;">Sem anúncio</span>`;
+  return `<div style="display:flex;flex-direction:column;gap:3px;min-width:90px">${cls}${prm}</div>`;
+}
+
 function renderTabela(tbodyId,lista,tipo){
   const tbody=document.getElementById(tbodyId);
   if(!lista.length){tbody.innerHTML=`<tr><td colspan="8" class="empty-state">Nenhum produto com os filtros atuais.</td></tr>`;return;}
   tbody.innerHTML=lista.map(p=>{
     const eCls=p.estoque<=5?'stock-low':'stock-ok';
-    const ml=p.anuncioML===true?'<span class="badge badge-green">Anunciado</span>':p.anuncioML===false?'<span class="badge badge-red">Sem anúncio</span>':'<span class="badge badge-amber">Desconhecido</span>';
-    const val=fmtInt(p.preco*p.estoque);
-    if(tipo==='opp') return `<tr><td class="td-mono">${esc(p.sku)}</td><td class="td-nome" title="${esc(p.nome)}">${esc(p.nome)}</td><td>${esc(p.marca)}</td><td>${esc(p.categoria)}</td><td class="td-price">${fmtBRL(p.preco)}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td><td>${ml}</td></tr>`;
-    return `<tr><td class="td-mono">${esc(p.sku)}</td><td class="td-nome" title="${esc(p.nome)}">${esc(p.nome)}</td><td>${esc(p.marca)}</td><td>${esc(p.categoria)}</td><td class="td-price">${fmtBRL(p.preco)}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td><td class="td-right" style="font-weight:600;color:var(--green)">${val}</td></tr>`;
+    const ml=p.anuncioML===true?'<span class="badge badge-green">Anunciado</span>':p.anuncioML===false?'<span class="badge badge-red">Sem anúncio</span>':'<span class="badge badge-amber">...</span>';
+    const precoML = renderPrecoML(p);
+    const val = fmtInt(p.valor);
+    if(tipo==='opp') return `<tr style="height:52px"><td class="td-mono">${esc(p.sku)}</td><td class="td-nome" title="${esc(p.nome)}">${esc(p.nome)}</td><td>${esc(p.marca)}</td><td>${esc(p.categoria)}</td><td class="td-right">${precoML}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td><td>${ml}</td></tr>`;
+    return `<tr style="height:52px"><td class="td-mono">${esc(p.sku)}</td><td class="td-nome" title="${esc(p.nome)}">${esc(p.nome)}</td><td>${esc(p.marca)}</td><td>${esc(p.categoria)}</td><td class="td-right">${precoML}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td><td class="td-right" style="font-weight:600;color:var(--green)">${val}</td></tr>`;
   }).join('');
 }
 
@@ -785,6 +840,8 @@ async function iniciarApp(produtos, isDemo) {
   atualizarUltimoRefresh();
   setStatus(isDemo?'demo':'live',isDemo?'Modo demo':'Conectado');
   document.getElementById('refresh-btn').disabled=false;
+  // Busca preços ML em background após carregar dashboard
+  if (!isDemo) buscarPrecosML(state.produtos);
 }
 
 function iniciarDemo(){
