@@ -670,20 +670,82 @@ async function buscarConcorrentesCatalogo(catalogProductId) {
     return state.concorrentesCache[catalogProductId];
   }
   try {
-    // Busca itens do catálogo ordenados por preço
-    const data = await mlFetch(`/products/${catalogProductId}/items?status=active&limit=10`);
-    const items = data.results || data.items || [];
-    const concorrentes = items
-      .filter(i => i.price > 0)
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 5)
-      .map((item, idx) => ({
-        pos: idx + 1,
-        seller_id: String(item.seller_id || item.seller?.id || ''),
-        preco: parseFloat(item.price),
-        mlb: item.id || '',
+    // Endpoint correto ML: busca o produto do catálogo com sellers e preços
+    // /products/{id} retorna buy_box_winner e structured_data com sellers
+    const [prodData, itemsData] = await Promise.all([
+      mlFetch(`/products/${catalogProductId}`),
+      mlFetch(`/products/${catalogProductId}/items?status=active&limit=20`),
+    ]);
+
+    // Tenta extrair sellers de múltiplas estruturas possíveis da API ML
+    let rawItems = [];
+
+    // Estrutura 1: /products/{id}/items — results com buy_box_price ou prices
+    const resultsRaw = itemsData.results || itemsData.items || itemsData.content || [];
+    if (resultsRaw.length > 0) rawItems = resultsRaw;
+
+    // Estrutura 2: /products/{id} — children_items com prices
+    if (rawItems.length === 0 && prodData.children_items) {
+      rawItems = prodData.children_items;
+    }
+
+    // Normaliza cada item extraindo preço de todos os campos possíveis
+    const normalizarItem = item => {
+      const preco = parseFloat(
+        item.buy_box_price ||
+        item.price ||
+        item.sale_price ||
+        item.original_price ||
+        item.prices?.amount ||
+        item.prices?.[0]?.amount ||
+        0
+      );
+      const seller_id = String(
+        item.seller_id ||
+        item.seller?.id ||
+        item.owner_id ||
+        ''
+      );
+      return {
+        preco,
+        seller_id,
+        mlb: item.id || item.item_id || '',
         condicao: item.condition === 'new' ? 'Novo' : 'Usado',
-      }));
+      };
+    };
+
+    let concorrentes = rawItems
+      .map(normalizarItem)
+      .filter(i => i.preco > 0)
+      .sort((a, b) => a.preco - b.preco)
+      .slice(0, 5)
+      .map((c, idx) => ({ ...c, pos: idx + 1 }));
+
+    // Fallback: se não veio preço, busca cada item individualmente
+    if (concorrentes.length === 0 && resultsRaw.length > 0) {
+      const mlbs = resultsRaw.slice(0, 5).map(i => i.id || i.item_id).filter(Boolean);
+      if (mlbs.length > 0) {
+        try {
+          const detalhes = await mlFetch(`/items?ids=${mlbs.join(',')}&attributes=id,price,seller_id,condition`);
+          const detArr = Array.isArray(detalhes) ? detalhes : (detalhes.body || []);
+          concorrentes = detArr
+            .map(d => {
+              const item = d.body || d;
+              return {
+                preco: parseFloat(item.price || 0),
+                seller_id: String(item.seller_id || ''),
+                mlb: item.id || '',
+                condicao: item.condition === 'new' ? 'Novo' : 'Usado',
+              };
+            })
+            .filter(i => i.preco > 0)
+            .sort((a, b) => a.preco - b.preco)
+            .slice(0, 5)
+            .map((c, idx) => ({ ...c, pos: idx + 1 }));
+        } catch(e) { /* silencioso */ }
+      }
+    }
+
     state.concorrentesCache[catalogProductId] = concorrentes;
     return concorrentes;
   } catch(e) { return null; }
@@ -949,16 +1011,21 @@ async function abrirModalConc(mlbId, nomeProduto) {
       const posBadgeCls = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-n';
       const isMe = meuSellerId && c.seller_id === meuSellerId;
       const diffPct = meuPreco > 0 ? ((meuPreco - c.preco) / c.preco * 100) : null;
-      const diffHtml = diffPct !== null
+      const diffHtml = diffPct !== null && c.preco > 0
         ? `<span class="${diffPct < 0 ? 'diff-pos' : diffPct > 0 ? 'diff-neg' : 'diff-zero'}">${fmtPct(-diffPct)}</span>`
         : '—';
+      const precoHtml = c.preco > 0
+        ? `<strong>${fmtBRL(c.preco)}</strong>`
+        : `<span style="color:var(--text3);font-size:11px">Ver no ML</span>`;
+      // Formata seller_id de forma mais legível
+      const sellerLabel = c.seller_id ? `#${c.seller_id}` : '—';
       const vendedor = isMe
-        ? `<strong style="color:var(--accent)">🏪 Você (${c.seller_id})</strong>`
-        : `Seller ${c.seller_id || '—'}`;
+        ? `<strong style="color:var(--accent)">🏪 Você</strong>`
+        : `<span style="color:var(--text2)">${sellerLabel}</span>${c.mlb ? ` <a href="https://www.mercadolivre.com.br/p/${c.mlb}" target="_blank" style="color:var(--accent);font-size:10px;text-decoration:none">↗</a>` : ''}`;
       return `<tr class="${isMe ? 'my-row' : ''}">
         <td><span class="pos-badge ${posBadgeCls}">${pos}</span></td>
         <td>${vendedor}</td>
-        <td style="text-align:right;font-weight:${isMe?'700':'400'}">${fmtBRL(c.preco)}</td>
+        <td style="text-align:right;font-weight:${isMe?'700':'400'}">${precoHtml}</td>
         <td style="text-align:right">${diffHtml}</td>
       </tr>`;
     }).join('');
