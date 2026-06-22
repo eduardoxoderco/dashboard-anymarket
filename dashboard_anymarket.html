@@ -733,15 +733,38 @@ function normalizarProduto(p) {
   const preco = parseFloat(p.skus?.[0]?.price??p.price??0);
   const estoque = parseInt(p.skus?.[0]?.amount??p.stockQuantity??0);
 
-  // Detecta MLB dos canais/marketplaces
+  // Detecta MLB dos canais/marketplaces — tenta todos os campos possíveis
   let mlbId = null;
+  const isML = v => v && (String(v).toLowerCase().includes('mercado') || String(v).toLowerCase() === 'mercado_livre' || String(v).toLowerCase().includes('meli'));
+  const extrairMLB = obj => {
+    const candidatos = [
+      obj?.externalId, obj?.adId, obj?.itemId, obj?.publicationId,
+      obj?.channelItemId, obj?.fields?.item_id, obj?.fields?.id,
+      obj?.fields?.external_id, obj?.sku?.externalId,
+    ];
+    for (const c of candidatos) {
+      if (!c) continue;
+      const s = String(c);
+      if (s.toUpperCase().startsWith('MLB')) return s;
+      if (/^\d{8,}$/.test(s)) return 'MLB' + s;
+    }
+    return null;
+  };
   if (Array.isArray(p.channels)) {
-    const mlCh = p.channels.find(c => (c.channelName||'').toLowerCase().includes('mercado') && c.status === 'ACTIVE');
-    if (mlCh?.externalId) mlbId = mlCh.externalId;
+    const mlCh = p.channels.find(c => isML(c.channelName) && c.status === 'ACTIVE');
+    if (mlCh) mlbId = extrairMLB(mlCh);
   }
   if (!mlbId && Array.isArray(p.marketplaces)) {
-    const mlMk = p.marketplaces.find(m => (m.name||'').toLowerCase().includes('mercado') && m.active);
-    if (mlMk?.externalId || mlMk?.adId) mlbId = mlMk?.externalId || mlMk?.adId;
+    const mlMk = p.marketplaces.find(m => isML(m.name) && m.active);
+    if (mlMk) mlbId = extrairMLB(mlMk);
+  }
+  if (!mlbId && Array.isArray(p.skus)) {
+    for (const sku of p.skus) {
+      if (Array.isArray(sku.channels)) {
+        const mlCh = sku.channels.find(c => isML(c.channelName) && c.status === 'ACTIVE');
+        if (mlCh) { mlbId = extrairMLB(mlCh); if (mlbId) break; }
+      }
+    }
   }
 
   return {sku, skuApiId, nome:p.title||p.name||'—', marca, categoria,
@@ -1213,8 +1236,43 @@ async function buscarPrecosML(produtos) {
         p.precoPremium=getPreco(premium)||getPreco(qualquer);
         p.anuncioML=anunciosML.length>0?true:(ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length>0?false:null);
 
-        // Extrai MLB do retorno se ainda não tiver
-        if (!p.mlbId && anunciosML[0]?.externalId) p.mlbId = anunciosML[0].externalId;
+        // Extrai MLB do retorno — tenta todos os campos possíveis da API ANYMARKET
+        if (!p.mlbId && anunciosML.length > 0) {
+          const anuncio = anunciosML[0];
+          const candidato =
+            anuncio.externalId ||
+            anuncio.adId ||
+            anuncio.itemId ||
+            anuncio.publicationId ||
+            anuncio.channelItemId ||
+            anuncio.fields?.item_id ||
+            anuncio.fields?.id ||
+            anuncio.fields?.external_id ||
+            anuncio.sku?.externalId ||
+            null;
+          if (candidato && String(candidato).toUpperCase().startsWith('MLB')) {
+            p.mlbId = candidato;
+          } else if (candidato && /^\d+$/.test(String(candidato))) {
+            // Alguns retornos trazem só o número sem prefixo MLB
+            p.mlbId = 'MLB' + candidato;
+          }
+        }
+
+        // Fallback: busca MLB direto via seller_id ML autenticado
+        if (!p.mlbId && p.skuApiId && state.mlToken && state.mlSellerId) {
+          try {
+            // Busca anúncios do seller que contenham o SKU parceiro
+            const mlResp = await fetch(
+              `https://api.mercadolibre.com/users/${state.mlSellerId}/items/search?seller_sku=${encodeURIComponent(p.sku)}&limit=1`,
+              { headers: { 'Authorization': 'Bearer ' + state.mlToken } }
+            );
+            if (mlResp.ok) {
+              const mlData = await mlResp.json();
+              const results = mlData.results || mlData.items || [];
+              if (results.length > 0) p.mlbId = results[0];
+            }
+          } catch(e) { /* silencioso */ }
+        }
 
         if(p.precoClassico&&p.precoPremium){p.valor=((p.precoClassico+p.precoPremium)/2)*p.estoque;}
         else if(p.precoPremium){p.valor=p.precoPremium*p.estoque;}
