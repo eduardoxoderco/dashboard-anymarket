@@ -473,7 +473,7 @@ function registrarChamada(n=1) {
   localStorage.setItem(CONFIG.KEY_CALLS, JSON.stringify({data:state.chamadas_data,count:state.chamadas}));
   atualizarRateBar();
 }
-function podeCarregar() { return state.chamadas < CONFIG.MAX_CHAMADAS_DIA; }
+function podeCarregar() { return true; } // Limite removido — apenas contador
 function atualizarRateBar() {
   const pct = Math.min(100,(state.chamadas/CONFIG.MAX_CHAMADAS_DIA)*100);
   const f = document.getElementById('rate-fill');
@@ -630,7 +630,6 @@ async function verificarOAuthCallback() {
 
 // ── API ANYMARKET ──
 async function apiFetch(path) {
-  if (!podeCarregar()) throw new Error(`Limite de ${CONFIG.MAX_CHAMADAS_DIA} chamadas diárias atingido.`);
   const resp = await fetch(CONFIG.BASE_URL+path, {headers:{'gumgaToken':state.token}});
   registrarChamada(1);
   if (resp.status===401) throw new Error('Token inválido ou expirado.');
@@ -712,7 +711,6 @@ async function fetchTodas(endpoint) {
 async function buscarComFiltro(filtro) {
   const todos=[]; let offset=0, pagina=0;
   while(pagina<CONFIG.MAX_PAGINAS) {
-    if(!podeCarregar()){mostrarErro('Limite de chamadas atingido. Dados parciais exibidos.');break;}
     const data = await apiFetch(`/products?limit=${CONFIG.PAGE_SIZE}&offset=${offset}&${filtro}`);
     const itens = data.content||[];
     if(!itens.length) break;
@@ -1033,7 +1031,7 @@ async function carregarCategorias() {
     });
     setLoading('load-indicator', true, 'Mapeando subcategorias...');
     let offset=0;
-    while(offset<500&&podeCarregar()) {
+    while(offset<500) {
       const data = await apiFetch(`/products?limit=100&offset=${offset}`);
       const itens = data.content||[];
       if(!itens.length) break;
@@ -1220,7 +1218,7 @@ async function buscarPrecosML(produtos) {
   for(let i=0;i<produtos.length;i+=LOTE){
     const lote=produtos.slice(i,i+LOTE);
     await Promise.all(lote.map(async p=>{
-      if(!p.skuApiId||!podeCarregar()) return;
+      if(!p.skuApiId) return;
       try {
         const resp=await fetch(`${CONFIG.BASE_URL}/skus/${p.skuApiId}/marketplaces`,{headers:{'gumgaToken':state.token}});
         registrarChamada(1);
