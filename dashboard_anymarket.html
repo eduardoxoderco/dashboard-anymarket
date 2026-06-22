@@ -942,12 +942,23 @@ async function buscarConcorrentesBackground(produtos) {
       p.concorrentesLoading = false;
 
     } catch(e) {
-      p.concorrentes = 'erro';
+      // Tenta uma vez mais antes de marcar como erro
+      try {
+        await delay(1000);
+        if (p.catalogProductId) {
+          const retry = await buscarConcorrentesCatalogo(p.catalogProductId);
+          p.concorrentes = retry || 'erro';
+        } else {
+          p.concorrentes = 'erro';
+        }
+      } catch(e2) {
+        p.concorrentes = 'erro';
+      }
       p.concorrentesLoading = false;
     }
 
     aplicarFiltros();
-    await delay(300);
+    await delay(500);
   }
 }
 
@@ -977,9 +988,9 @@ function renderColunaConc(p) {
     return `<td><span class="conc-badge none">Fora do catálogo</span></td>`;
   }
 
-  // Erro
+  // Erro — clicável para tentar novamente
   if (p.concorrentes === 'erro') {
-    return `<td><span style="color:var(--red);font-size:11px">Erro ↻</span></td>`;
+    return `<td><span style="color:var(--red);font-size:11px;cursor:pointer" onclick="tentarNovamente('${p.mlbId || ''}','${esc(p.nome)}')">Erro ↻</span></td>`;
   }
 
   // Sem concorrentes encontrados
@@ -1181,6 +1192,20 @@ async function abrirModalConc(mlbId, nomeProduto) {
 
 function fecharModal() {
   document.getElementById('modal-concorrentes').classList.remove('open');
+}
+
+async function tentarNovamente(mlbId, nomeProduto) {
+  // Reseta o produto e tenta buscar novamente
+  const prod = state.produtos.find(p => p.mlbId === mlbId || p.mlbIdAlt === mlbId);
+  if (prod) {
+    prod.concorrentes = null;
+    prod.catalogProductId = null;
+    prod.concorrentesLoading = false;
+    delete state.concorrentesCache[prod.catalogProductId];
+  }
+  if (mlbId) {
+    await abrirModalConc(mlbId, nomeProduto);
+  }
 }
 
 function fecharModalSe(e) {
