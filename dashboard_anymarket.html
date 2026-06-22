@@ -198,10 +198,10 @@
   .modal-summary-val.blue { color: var(--accent); }
   /* Tabela sem overflow */
   .modal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .modal-table col.c-pos { width: 36px; }
-  .modal-table col.c-seller { width: auto; }
-  .modal-table col.c-price { width: 88px; }
-  .modal-table col.c-diff { width: 68px; }
+  .modal-table col.c-pos { width: 34px; }
+  .modal-table col.c-seller { width: 55%; }
+  .modal-table col.c-price { width: 22%; }
+  .modal-table col.c-diff { width: 18%; }
   .modal-table th { font-size: 10px; color: var(--text3); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; overflow: hidden; }
   .modal-table th.right { text-align: right; }
   .modal-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1016,16 +1016,22 @@ async function buscarNicknames(sellerIds) {
       const ids = semCache.slice(0, 10).join(',');
       const data = await mlFetch(`/users?ids=${ids}`);
       const arr = Array.isArray(data) ? data : (data.results || []);
+      // API ML pode retornar array direto ou array com body/code por item
       arr.forEach(u => {
-        const id = String(u.id || '');
-        if (id) nicknameCache[id] = u.nickname || u.name || `#${id}`;
+        const item = u.body || u;
+        const id = String(item.id || u.id || '');
+        if (id) {
+          const nome = item.nickname || item.name || item.first_name || '';
+          nicknameCache[id] = nome.trim() || `#${id}`;
+        }
       });
     } catch(e) {
       // Fallback: busca individual silencioso
       for (const id of semCache.slice(0, 5)) {
         try {
-          const u = await mlFetch(`/users/${id}?attributes=id,nickname`);
-          nicknameCache[id] = u.nickname || u.name || `#${id}`;
+          const u = await mlFetch(`/users/${id}?attributes=id,nickname,name`);
+          const nome = u.nickname || u.name || u.first_name || '';
+          nicknameCache[id] = nome.trim() || `#${id}`;
         } catch(e2) { nicknameCache[id] = `#${id}`; }
       }
     }
