@@ -656,10 +656,37 @@ async function mlFetch(path) {
 // Busca catalog_product_id de um item MLB
 async function buscarCatalogId(mlbId) {
   try {
-    const data = await mlFetch(`/items/${mlbId}?attributes=catalog_product_id,catalog_listing,title`);
-    if (data.catalog_listing && data.catalog_product_id) {
-      return data.catalog_product_id;
+    // Busca todos os atributos relevantes — catalog_listing pode vir false mesmo sendo catálogo
+    const data = await mlFetch(`/items/${mlbId}?attributes=catalog_product_id,catalog_listing,listing_type_id,title`);
+
+    // 1. Caso ideal: catalog_product_id já vem preenchido
+    if (data.catalog_product_id) return data.catalog_product_id;
+
+    // 2. catalog_listing true mas sem catalog_product_id — busca via search
+    if (data.catalog_listing) {
+      const search = await mlFetch(`/products/search?status=active&q=${encodeURIComponent(data.title || mlbId)}&site_id=MLB&limit=1`);
+      const results = search.results || [];
+      if (results[0]?.id) return results[0].id;
     }
+
+    // 3. Tenta buscar pelo próprio MLB no endpoint de produto
+    // Alguns anúncios catálogo retornam catalog_listing=false mas têm catalog_product_id
+    try {
+      const prod = await mlFetch(`/products/search?site_id=MLB&q=${encodeURIComponent(mlbId)}&limit=1`);
+      if (prod.results?.[0]?.id) return prod.results[0].id;
+    } catch(e) { /* silencioso */ }
+
+    return null;
+  } catch(e) { return null; }
+}
+
+// Busca catalog_product_id usando o título do anúncio como fallback
+async function buscarCatalogIdPorTitulo(titulo, categoria) {
+  try {
+    const q = encodeURIComponent(titulo.substring(0, 60));
+    const data = await mlFetch(`/products/search?status=active&q=${q}&site_id=MLB&limit=3`);
+    const results = data.results || [];
+    if (results[0]?.id) return results[0].id;
     return null;
   } catch(e) { return null; }
 }
@@ -862,6 +889,16 @@ async function buscarConcorrentesBackground(produtos) {
       // 1. Busca catalog_product_id pelo MLB
       if (!p.catalogProductId) {
         p.catalogProductId = await buscarCatalogId(p.mlbId);
+      }
+
+      // Fallback 1: tenta com MLB alternativo (ex: clássico vs premium)
+      if (!p.catalogProductId && p.mlbIdAlt) {
+        p.catalogProductId = await buscarCatalogId(p.mlbIdAlt);
+      }
+
+      // Fallback 2: tenta pelo título do produto
+      if (!p.catalogProductId && p.nome && p.nome !== '—') {
+        p.catalogProductId = await buscarCatalogIdPorTitulo(p.nome);
       }
 
       if (!p.catalogProductId) {
@@ -1301,9 +1338,11 @@ async function buscarPrecosML(produtos) {
         p.precoPremium=getPreco(premium)||getPreco(qualquer);
         p.anuncioML=anunciosML.length>0?true:(ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length>0?false:null);
 
-        // Extrai MLB do retorno — tenta todos os campos possíveis da API ANYMARKET
+        // Extrai MLB do retorno — prefere Premium (gold_pro) sobre Clássico (gold_special)
+        // pois anúncios Premium têm catalog_product_id mais consistente na API ML
         if (!p.mlbId && anunciosML.length > 0) {
-          const anuncio = anunciosML[0];
+          const anuncioPremium = anunciosML.find(x => x.fields?.listing_type_id === 'gold_pro');
+          const anuncio = anuncioPremium || anunciosML[0];
           const candidato =
             anuncio.externalId ||
             anuncio.adId ||
@@ -1318,8 +1357,15 @@ async function buscarPrecosML(produtos) {
           if (candidato && String(candidato).toUpperCase().startsWith('MLB')) {
             p.mlbId = candidato;
           } else if (candidato && /^\d+$/.test(String(candidato))) {
-            // Alguns retornos trazem só o número sem prefixo MLB
             p.mlbId = 'MLB' + candidato;
+          }
+          // Salva MLB alternativo (clássico) para fallback de busca de catálogo
+          const anuncioAlt = anunciosML.find(x => x !== anuncio);
+          if (anuncioAlt) {
+            const cands2 = [anuncioAlt.externalId, anuncioAlt.adId, anuncioAlt.itemId, anuncioAlt.fields?.item_id];
+            for (const c of cands2) {
+              if (c && String(c).toUpperCase().startsWith('MLB')) { p.mlbIdAlt = c; break; }
+            }
           }
         }
 
