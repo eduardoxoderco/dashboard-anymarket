@@ -475,64 +475,91 @@ function salvar(db) {
   localStorage.setItem(KEY, JSON.stringify(db));
 }
 
-// ── PARSER ──
+// ── PARSER INTELIGENTE ──
+// Reconhece todos os formatos do gerente:
+// 1. Texto livre: "351751\n13% = 3599,00\n18% = 4099,00"
+// 2. Tabela com tabs: "SKU\tML 13\tML 18\n304565\tR$5.199,00\t..."
+// 3. Múltiplos SKUs em blocos separados por linha em branco
+// 4. Cabeçalhos variados: SKU, Cód, Código, ML 13, ML 18, 13%, 18%
 function parsearTabela(texto) {
-  const linhas = texto.trim().split('\n').map(l => l.trim()).filter(Boolean);
-  if (linhas.length < 2) return { itens: [], erros: ['Nenhuma linha encontrada.'] };
-
-  const erros = [];
+  const linhas = texto.trim().split('\n');
   const itens = [];
+  const erros = [];
 
-  // Detecta separador: tab, pipe ou múltiplos espaços
-  const detectarSep = linha => {
-    if (linha.includes('\t')) return /\t/;
-    if (linha.includes('|')) return /\|/;
-    return /\s{2,}/;
+  const temTab  = linhas.some(l => l.includes('\t'));
+  const temPipe = linhas.some(l => l.includes('|'));
+
+  // Converte valor PT-BR para número (aceita 3599,00 / 3.599,00 / 11.099,00)
+  const parseVal = v => {
+    v = String(v).replace(/[R$\s]/g, '');
+    if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.');
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
   };
 
-  const sep = detectarSep(linhas[0]);
-
-  // Detecta se primeira linha é cabeçalho
-  const primCols = linhas[0].split(sep).map(c => c.trim().toLowerCase());
-  const temCabecalho = primCols.some(c =>
-    c.includes('sku') || c.includes('nome') || c.includes('preço') || c.includes('preco') || c.includes('%')
-  );
-
-  const inicio = temCabecalho ? 1 : 0;
-
-  // Tenta mapear colunas pelo cabeçalho
-  let idxSku = 0, idxNome = 1, idxP13 = 2, idxP18 = 3;
-  if (temCabecalho) {
-    primCols.forEach((c, i) => {
-      if (c.includes('sku') || c.includes('código') || c.includes('cod')) idxSku = i;
-      else if (c.includes('nome') || c.includes('produto') || c.includes('descri')) idxNome = i;
-      else if (c.includes('13')) idxP13 = i;
-      else if (c.includes('18')) idxP18 = i;
-    });
+  // ── TABELA (com tab ou pipe) ──
+  if (temTab || temPipe) {
+    const sep = temTab ? '\t' : '|';
+    let idxSku=0, idxP13=1, idxP18=2;
+    for (const linha of linhas) {
+      const cols = linha.split(sep).map(c => c.trim().replace(/^\|+|\|+$/g,'').trim());
+      if (!cols.some(c => c)) continue;
+      const tc = cols.join(' ').toLowerCase();
+      // Linha de cabeçalho
+      if (/sku|cód|cod|código|ml 13|ml 18|13%|18%|preço/.test(tc)) {
+        cols.forEach((c, i) => {
+          const cl = c.toLowerCase();
+          if (/sku|cód|cod|código/.test(cl)) idxSku = i;
+          else if (cl.includes('13')) idxP13 = i;
+          else if (cl.includes('18')) idxP18 = i;
+        });
+        continue;
+      }
+      if (cols.length < 2) continue;
+      const sku = (cols[idxSku]||'').replace(/\D/g,'');
+      if (!sku || sku.length < 4) continue;
+      const p13 = parseVal(cols[idxP13]||'');
+      const p18 = parseVal(cols[idxP18]||'');
+      if (p13 || p18) itens.push({ sku, nome:'—', preco13:p13||0, preco18:p18||0 });
+    }
+    return { itens, erros };
   }
 
-  for (let i = inicio; i < linhas.length; i++) {
-    const cols = linhas[i].split(sep).map(c => c.trim().replace(/^[\|]|[\|]$/g, '').trim());
-    if (cols.length < 2) continue;
+  // ── TEXTO LIVRE ──
+  // Regex de preço: aceita com e sem separador de milhar
+  const precoRe = /\b(\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d{4,}[.,]\d{2})\b/g;
+  const skuRe   = /^\s*(\d{4,7})\b/;
 
-    const parseBRL = v => {
-      if (!v) return null;
-      const n = parseFloat(v.replace(/[R$\s.]/g, '').replace(',', '.'));
-      return isNaN(n) ? null : n;
-    };
+  // Separa em blocos por linha em branco
+  const blocos = texto.trim().split(/\n\s*\n/);
 
-    const sku = cols[idxSku] || '';
-    const nome = cols[idxNome] || '';
-    const p13 = parseBRL(cols[idxP13]);
-    const p18 = parseBRL(cols[idxP18]);
+  for (const bloco of blocos) {
+    const linhasBloco = bloco.trim().split('\n').map(l => l.trim()).filter(Boolean);
+    if (!linhasBloco.length) continue;
 
-    if (!sku && !nome) continue;
-    if (p13 === null && p18 === null) {
-      erros.push(`Linha ${i + 1}: preços não identificados — "${linhas[i].substring(0, 50)}"`);
-      continue;
+    // Encontra SKU no bloco
+    let sku = null;
+    for (const l of linhasBloco) {
+      const m = l.match(skuRe);
+      if (m) { sku = m[1]; break; }
+    }
+    if (!sku) continue;
+
+    let p13 = null, p18 = null;
+
+    for (const l of linhasBloco) {
+      const ll = l.toLowerCase();
+      const precos = [...l.matchAll(precoRe)].map(m => m[0]);
+      if (!precos.length) continue;
+      if (ll.includes('13')) p13 = parseVal(precos[0]);
+      else if (ll.includes('18')) p18 = parseVal(precos[0]);
     }
 
-    itens.push({ sku: sku || '—', nome: nome || '—', preco13: p13 || 0, preco18: p18 || 0 });
+    if (p13 !== null || p18 !== null) {
+      itens.push({ sku, nome:'—', preco13:p13||0, preco18:p18||0 });
+    } else {
+      erros.push(`SKU ${sku}: preços não reconhecidos — verifique o formato`);
+    }
   }
 
   return { itens, erros };
