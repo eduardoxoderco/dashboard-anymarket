@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabela de Preços — Placas de Vídeo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f3ef;
+    --surface: #ffffff;
+    --surface2: #f9f8f5;
+    --border: #e4e3dc;
+    --border2: #d0cfc7;
+    --text: #1a1a18;
+    --text2: #5a5a56;
+    --text3: #9a9a94;
+    --accent: #2d4a8a;
+    --accent-light: #e8edf7;
+    --green: #2d6e3e;
+    --green-bg: #eaf4ee;
+    --amber: #8a5a00;
+    --amber-bg: #fef3dc;
+    --red: #8a2020;
+    --red-bg: #fdeaea;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .topbar-logo svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2; }
+  .topbar-title { font-size: 14px; font-weight: 600; }
+  .topbar-sub { font-size: 11px; color: var(--text3); }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .topbar-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: background 0.15s;
+    font-weight: 500;
+  }
+  .topbar-btn:hover { background: var(--bg); }
+  .topbar-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .topbar-btn.primary:hover { opacity: 0.88; }
+
+  /* MAIN */
+  .main { padding: 20px 24px; max-width: 1100px; margin: 0 auto; }
+
+  /* KPIs */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 15px; }
+  .kpi-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .kpi-val { font-size: 20px; font-weight: 600; color: var(--accent); }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  /* SEARCH BAR */
+  .search-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--text);
+    background: transparent;
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .search-count { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  /* TABELA */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 680px; }
+  thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text3);
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { cursor: pointer; transition: background 0.1s; }
+  tbody tr:hover td { background: var(--accent-light); }
+  tbody tr.selected td { background: var(--accent-light); }
+  .td-sku { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .td-nome { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .td-preco { font-weight: 600; white-space: nowrap; text-align: right; font-size: 13px; }
+  .td-data { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .td-hist { text-align: center; }
+  .hist-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .var-up { color: var(--red); font-size: 10px; }
+  .var-down { color: var(--green); font-size: 10px; }
+  .empty-state { padding: 48px 20px; text-align: center; color: var(--text3); font-size: 13px; }
+  .empty-state strong { display: block; font-size: 15px; color: var(--text2); margin-bottom: 6px; }
+
+  /* MODAL IMPORTAR */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    width: 100%; max-width: 640px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+  }
+  .modal-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; }
+  .modal-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .modal-close {
+    width: 28px; height: 28px;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface2); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--text2);
+  }
+  .modal-close:hover { background: var(--bg); }
+  .modal-body { padding: 18px 20px; }
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  }
+
+  /* STEPS DO MODAL */
+  .import-step { display: none; }
+  .import-step.active { display: block; }
+  .step-label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+
+  /* TEXTAREA */
+  .paste-area {
+    width: 100%;
+    min-height: 180px;
+    padding: 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-family: 'SF Mono', monospace;
+    color: var(--text);
+    background: var(--surface2);
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  .paste-area:focus { border-color: var(--accent); }
+  .paste-hint { font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.6; }
+
+  /* PREVIEW TABLE */
+  .preview-table-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .preview-table { width: 100%; border-collapse: collapse; }
+  .preview-table th {
+    font-size: 11px; font-weight: 500; color: var(--text3);
+    padding: 7px 10px; background: var(--surface2);
+    border-bottom: 1px solid var(--border); text-align: left;
+  }
+  .preview-table td {
+    padding: 7px 10px; border-bottom: 1px solid var(--border); font-size: 12px;
+  }
+  .preview-table tr:last-child td { border-bottom: none; }
+  .preview-table td input {
+    width: 100%; border: none; outline: none; background: transparent;
+    font-size: 12px; color: var(--text); font-family: inherit;
+  }
+  .preview-table td input:focus { background: var(--accent-light); border-radius: 4px; padding: 2px 4px; }
+  .parse-ok { background: var(--green-bg); border: 1px solid #a8d8a8; border-radius: var(--radius); padding: 8px 12px; font-size: 12px; color: var(--green); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .parse-warn { background: var(--amber-bg); border: 1px solid #f0d090; border-radius: var(--radius); padding: 8px 12px; font-size: 12px; color: var(--amber); margin-bottom: 12px; }
+  .date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .date-row label { font-size: 12px; color: var(--text2); white-space: nowrap; }
+  .date-input {
+    padding: 6px 10px; border: 1px solid var(--border2); border-radius: var(--radius);
+    font-size: 12px; color: var(--text); background: var(--surface2); outline: none;
+  }
+  .date-input:focus { border-color: var(--accent); }
+
+  /* PAINEL HISTÓRICO */
+  .hist-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 300;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .hist-overlay.open { display: flex; }
+  .hist-modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    width: 100%; max-width: 560px;
+    max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+  }
+  .hist-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  }
+  .hist-sku { font-size: 11px; font-family: monospace; color: var(--text3); }
+  .hist-nome { font-size: 14px; font-weight: 600; }
+  .hist-body { padding: 16px 20px; }
+  .hist-entry {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .hist-entry:last-child { margin-bottom: 0; }
+  .hist-entry.latest { border-color: var(--accent); background: var(--accent-light); }
+  .hist-entry-badge {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 9px; font-weight: 600; padding: 2px 7px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .hist-entry.latest .hist-entry-badge { background: var(--accent); color: #fff; }
+  .hist-entry:not(.latest) .hist-entry-badge { background: var(--surface2); color: var(--text3); }
+  .hist-date { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+  .hist-prices { display: flex; gap: 16px; }
+  .hist-price-cell { flex: 1; }
+  .hist-price-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+  .hist-price-val { font-size: 16px; font-weight: 700; color: var(--text); }
+  .hist-price-var { font-size: 10px; margin-top: 2px; }
+  .hist-empty { padding: 32px 20px; text-align: center; color: var(--text3); font-size: 13px; }
+  .btn {
+    padding: 8px 16px; border-radius: var(--radius); font-size: 13px;
+    font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+  .btn-secondary { background: var(--surface); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid #f5c2c2; }
+  .btn-danger:hover { opacity: 0.8; }
+
+  @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+  @media(max-width:600px){ .kpi-row{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+
+<!-- MODAL IMPORTAR -->
+<div class="overlay" id="overlay-import" onclick="fecharImportSe(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Importar tabela do gerente</div>
+        <div class="modal-sub" id="import-sub">Cole o conteúdo recebido pelo Teams</div>
+      </div>
+      <button class="modal-close" onclick="fecharImport()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Step 1: colar -->
+      <div class="import-step active" id="step-colar">
+        <div class="step-label">Passo 1 de 2 — Cole a tabela</div>
+        <textarea class="paste-area" id="paste-area"
+          placeholder="Cole aqui a mensagem do Teams...
+
+Exemplo:
+SKU	Nome	Preço 13%	Preço 18%
+351751	RTX 4070 Super	R$ 3.200,00	R$ 3.450,00
+313759	RTX 5060 Ti	R$ 2.800,00	R$ 3.100,00"></textarea>
+        <div class="paste-hint">Aceita tabelas copiadas do Teams, Excel ou qualquer formato com tabs, pipes (|) ou vírgulas.</div>
+      </div>
+
+      <!-- Step 2: revisar -->
+      <div class="import-step" id="step-revisar">
+        <div class="step-label">Passo 2 de 2 — Revise e confirme</div>
+        <div id="parse-feedback"></div>
+        <div class="date-row">
+          <label>Data de atualização:</label>
+          <input type="datetime-local" class="date-input" id="import-data">
+        </div>
+        <div class="preview-table-wrap">
+          <table class="preview-table" id="preview-table">
+            <thead><tr>
+              <th>SKU</th>
+              <th>Nome do produto</th>
+              <th>Preço 13%</th>
+              <th>Preço 18%</th>
+            </tr></thead>
+            <tbody id="preview-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="import-btn-back" onclick="voltarColar()" style="display:none">← Voltar</button>
+      <button class="btn btn-secondary" onclick="fecharImport()">Cancelar</button>
+      <button class="btn btn-primary" id="import-btn-next" onclick="interpretarTabela()">Interpretar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO -->
+<div class="hist-overlay" id="hist-overlay" onclick="fecharHistSe(event)">
+  <div class="hist-modal">
+    <div class="hist-header">
+      <div>
+        <div class="hist-sku" id="hist-sku-label">—</div>
+        <div class="hist-nome" id="hist-nome-label">—</div>
+      </div>
+      <button class="modal-close" onclick="fecharHist()">×</button>
+    </div>
+    <div class="hist-body" id="hist-body">
+      <div class="hist-empty">Sem histórico</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div>
+      <div class="topbar-title">Preços do Gerente</div>
+      <div class="topbar-sub">Placas de Vídeo</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size:11px;color:var(--text3)" id="ultima-atualizacao"></span>
+    <button class="topbar-btn" onclick="limparTudo()" id="btn-limpar" style="display:none">Limpar dados</button>
+    <button class="topbar-btn primary" onclick="abrirImport()">+ Importar tabela</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">SKUs cadastrados</div>
+      <div class="kpi-val" id="kpi-total">—</div>
+      <div class="kpi-sub">na base atual</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Última importação</div>
+      <div class="kpi-val" id="kpi-data" style="font-size:14px;padding-top:3px">—</div>
+      <div class="kpi-sub" id="kpi-data-sub"></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total de importações</div>
+      <div class="kpi-val" id="kpi-imports">—</div>
+      <div class="kpi-sub">histórico salvo</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Variação média 13%</div>
+      <div class="kpi-val" id="kpi-var" style="font-size:16px;padding-top:2px">—</div>
+      <div class="kpi-sub">vs importação anterior</div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="busca" placeholder="Buscar por SKU ou nome do produto..." oninput="renderTabela()">
+    <span class="search-count" id="search-count"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('sku')">SKU</th>
+          <th onclick="sortBy('nome')">Produto</th>
+          <th style="text-align:right" onclick="sortBy('preco13')">Preço 13%</th>
+          <th style="text-align:right" onclick="sortBy('preco18')">Preço 18%</th>
+          <th onclick="sortBy('data')">Atualizado em</th>
+          <th style="text-align:center">Histórico</th>
+        </tr>
+      </thead>
+      <tbody id="main-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ── STORAGE ──
+const KEY = 'precos_gerente_v1';
+
+function carregar() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '{"skus":{},"imports":[]}'); }
+  catch(e) { return { skus: {}, imports: [] }; }
+}
+
+function salvar(db) {
+  localStorage.setItem(KEY, JSON.stringify(db));
+}
+
+// ── PARSER ──
+function parsearTabela(texto) {
+  const linhas = texto.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  if (linhas.length < 2) return { itens: [], erros: ['Nenhuma linha encontrada.'] };
+
+  const erros = [];
+  const itens = [];
+
+  // Detecta separador: tab, pipe ou múltiplos espaços
+  const detectarSep = linha => {
+    if (linha.includes('\t')) return /\t/;
+    if (linha.includes('|')) return /\|/;
+    return /\s{2,}/;
+  };
+
+  const sep = detectarSep(linhas[0]);
+
+  // Detecta se primeira linha é cabeçalho
+  const primCols = linhas[0].split(sep).map(c => c.trim().toLowerCase());
+  const temCabecalho = primCols.some(c =>
+    c.includes('sku') || c.includes('nome') || c.includes('preço') || c.includes('preco') || c.includes('%')
+  );
+
+  const inicio = temCabecalho ? 1 : 0;
+
+  // Tenta mapear colunas pelo cabeçalho
+  let idxSku = 0, idxNome = 1, idxP13 = 2, idxP18 = 3;
+  if (temCabecalho) {
+    primCols.forEach((c, i) => {
+      if (c.includes('sku') || c.includes('código') || c.includes('cod')) idxSku = i;
+      else if (c.includes('nome') || c.includes('produto') || c.includes('descri')) idxNome = i;
+      else if (c.includes('13')) idxP13 = i;
+      else if (c.includes('18')) idxP18 = i;
+    });
+  }
+
+  for (let i = inicio; i < linhas.length; i++) {
+    const cols = linhas[i].split(sep).map(c => c.trim().replace(/^[\|]|[\|]$/g, '').trim());
+    if (cols.length < 2) continue;
+
+    const parseBRL = v => {
+      if (!v) return null;
+      const n = parseFloat(v.replace(/[R$\s.]/g, '').replace(',', '.'));
+      return isNaN(n) ? null : n;
+    };
+
+    const sku = cols[idxSku] || '';
+    const nome = cols[idxNome] || '';
+    const p13 = parseBRL(cols[idxP13]);
+    const p18 = parseBRL(cols[idxP18]);
+
+    if (!sku && !nome) continue;
+    if (p13 === null && p18 === null) {
+      erros.push(`Linha ${i + 1}: preços não identificados — "${linhas[i].substring(0, 50)}"`);
+      continue;
+    }
+
+    itens.push({ sku: sku || '—', nome: nome || '—', preco13: p13 || 0, preco18: p18 || 0 });
+  }
+
+  return { itens, erros };
+}
+
+// ── IMPORT MODAL ──
+let dadosParseados = [];
+
+function abrirImport() {
+  document.getElementById('overlay-import').classList.add('open');
+  document.getElementById('paste-area').value = '';
+  irStepColar();
+  setTimeout(() => document.getElementById('paste-area').focus(), 100);
+}
+
+function fecharImport() {
+  document.getElementById('overlay-import').classList.remove('open');
+}
+
+function fecharImportSe(e) {
+  if (e.target === document.getElementById('overlay-import')) fecharImport();
+}
+
+function irStepColar() {
+  document.getElementById('step-colar').classList.add('active');
+  document.getElementById('step-revisar').classList.remove('active');
+  document.getElementById('import-btn-next').textContent = 'Interpretar →';
+  document.getElementById('import-btn-next').onclick = interpretarTabela;
+  document.getElementById('import-btn-back').style.display = 'none';
+  document.getElementById('import-sub').textContent = 'Cole o conteúdo recebido pelo Teams';
+}
+
+function voltarColar() { irStepColar(); }
+
+function interpretarTabela() {
+  const texto = document.getElementById('paste-area').value.trim();
+  if (!texto) { alert('Cole o conteúdo da tabela antes de continuar.'); return; }
+
+  const { itens, erros } = parsearTabela(texto);
+  dadosParseados = itens;
+
+  // Feedback
+  const fb = document.getElementById('parse-feedback');
+  if (itens.length === 0) {
+    fb.innerHTML = `<div class="parse-warn">⚠️ Nenhum item reconhecido. Verifique o formato da tabela.</div>`;
+  } else {
+    fb.innerHTML = `<div class="parse-ok">✅ ${itens.length} produto${itens.length !== 1 ? 's' : ''} identificado${itens.length !== 1 ? 's' : ''}${erros.length ? ` · ${erros.length} linha(s) ignorada(s)` : ''}</div>`;
+  }
+
+  // Data padrão: agora
+  const agora = new Date();
+  const local = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  document.getElementById('import-data').value = local;
+
+  // Preview editável
+  const tbody = document.getElementById('preview-tbody');
+  tbody.innerHTML = itens.map((item, i) => `
+    <tr>
+      <td><input value="${esc(item.sku)}" onchange="dadosParseados[${i}].sku=this.value"></td>
+      <td><input value="${esc(item.nome)}" onchange="dadosParseados[${i}].nome=this.value" style="min-width:180px"></td>
+      <td><input value="${fmtBRL(item.preco13)}" onchange="dadosParseados[${i}].preco13=parseBRLInput(this.value)" style="text-align:right"></td>
+      <td><input value="${fmtBRL(item.preco18)}" onchange="dadosParseados[${i}].preco18=parseBRLInput(this.value)" style="text-align:right"></td>
+    </tr>`).join('');
+
+  document.getElementById('step-colar').classList.remove('active');
+  document.getElementById('step-revisar').classList.add('active');
+  document.getElementById('import-btn-next').textContent = 'Salvar';
+  document.getElementById('import-btn-next').onclick = salvarImport;
+  document.getElementById('import-btn-next').disabled = itens.length === 0;
+  document.getElementById('import-btn-back').style.display = '';
+  document.getElementById('import-sub').textContent = `${itens.length} produtos · revise antes de salvar`;
+}
+
+function parseBRLInput(v) {
+  const n = parseFloat(v.replace(/[R$\s.]/g, '').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+
+function salvarImport() {
+  if (!dadosParseados.length) return;
+  const dataStr = document.getElementById('import-data').value;
+  const data = dataStr ? new Date(dataStr).toISOString() : new Date().toISOString();
+
+  const db = carregar();
+  const importId = Date.now();
+
+  // Registra importação
+  db.imports = db.imports || [];
+  db.imports.push({ id: importId, data, total: dadosParseados.length });
+
+  // Atualiza cada SKU
+  dadosParseados.forEach(item => {
+    const key = item.sku;
+    if (!db.skus[key]) db.skus[key] = { sku: key, nome: item.nome, historico: [] };
+    db.skus[key].nome = item.nome;
+    db.skus[key].historico.unshift({ data, preco13: item.preco13, preco18: item.preco18, importId });
+  });
+
+  salvar(db);
+  fecharImport();
+  renderTudo();
+}
+
+// ── SORT ──
+let sortCampo = 'sku', sortDir = 'asc';
+function sortBy(campo) {
+  sortDir = (sortCampo === campo && sortDir === 'asc') ? 'desc' : 'asc';
+  sortCampo = campo;
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+  const ths = document.querySelectorAll('thead th');
+  const idx = ['sku','nome','preco13','preco18','data','hist'].indexOf(campo);
+  if (idx >= 0 && ths[idx]) ths[idx].classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  renderTabela();
+}
+
+// ── RENDER ──
+function renderTudo() {
+  const db = carregar();
+  const skus = Object.values(db.skus || {});
+  const imports = db.imports || [];
+
+  // KPIs
+  document.getElementById('kpi-total').textContent = skus.length || '—';
+  document.getElementById('kpi-imports').textContent = imports.length || '—';
+
+  if (imports.length > 0) {
+    const ultima = imports[imports.length - 1];
+    const d = new Date(ultima.data);
+    document.getElementById('kpi-data').textContent = d.toLocaleDateString('pt-BR');
+    document.getElementById('kpi-data-sub').textContent = d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('ultima-atualizacao').textContent = `Última importação: ${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
+    document.getElementById('btn-limpar').style.display = '';
+  }
+
+  // Variação média 13%
+  if (skus.length > 0) {
+    const vars = skus
+      .filter(s => s.historico.length >= 2)
+      .map(s => {
+        const atual = s.historico[0].preco13;
+        const ant = s.historico[1].preco13;
+        return ant > 0 ? ((atual - ant) / ant * 100) : null;
+      })
+      .filter(v => v !== null);
+    if (vars.length > 0) {
+      const media = vars.reduce((a, b) => a + b, 0) / vars.length;
+      const el = document.getElementById('kpi-var');
+      el.textContent = (media >= 0 ? '+' : '') + media.toFixed(1) + '%';
+      el.style.color = media > 0 ? 'var(--red)' : media < 0 ? 'var(--green)' : 'var(--text)';
+    } else {
+      document.getElementById('kpi-var').textContent = '—';
+    }
+  }
+
+  renderTabela();
+}
+
+function renderTabela() {
+  const db = carregar();
+  const busca = document.getElementById('busca').value.toLowerCase().trim();
+  let lista = Object.values(db.skus || {});
+
+  // Filtra
+  if (busca) {
+    lista = lista.filter(s =>
+      s.sku.toLowerCase().includes(busca) ||
+      s.nome.toLowerCase().includes(busca)
+    );
+  }
+
+  // Ordena
+  lista.sort((a, b) => {
+    let va, vb;
+    if (sortCampo === 'sku') { va = a.sku; vb = b.sku; }
+    else if (sortCampo === 'nome') { va = a.nome; vb = b.nome; }
+    else if (sortCampo === 'preco13') { va = a.historico[0]?.preco13 || 0; vb = b.historico[0]?.preco13 || 0; }
+    else if (sortCampo === 'preco18') { va = a.historico[0]?.preco18 || 0; vb = b.historico[0]?.preco18 || 0; }
+    else if (sortCampo === 'data') { va = a.historico[0]?.data || ''; vb = b.historico[0]?.data || ''; }
+    else { va = a.historico.length; vb = b.historico.length; }
+    if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+
+  document.getElementById('search-count').textContent =
+    busca ? `${lista.length} resultado${lista.length !== 1 ? 's' : ''}` : `${lista.length} produto${lista.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('main-tbody');
+  if (lista.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">
+      <strong>${busca ? 'Nenhum resultado' : 'Nenhum produto cadastrado'}</strong>
+      ${busca ? 'Tente outro termo de busca.' : 'Clique em "+ Importar tabela" para começar.'}
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = lista.map(s => {
+    const atual = s.historico[0];
+    const ant = s.historico[1];
+    const data = atual ? new Date(atual.data) : null;
+    const dataStr = data ? data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '—';
+
+    // Variação vs anterior
+    const varHtml = (atual && ant && ant.preco13 > 0) ? (() => {
+      const pct = ((atual.preco13 - ant.preco13) / ant.preco13 * 100);
+      return pct > 0.1
+        ? `<span class="var-up">▲ ${pct.toFixed(1)}%</span>`
+        : pct < -0.1
+        ? `<span class="var-down">▼ ${Math.abs(pct).toFixed(1)}%</span>`
+        : `<span style="color:var(--text3);font-size:10px">=</span>`;
+    })() : '';
+
+    return `<tr onclick="abrirHist('${esc(s.sku)}')">
+      <td class="td-sku">${esc(s.sku)}</td>
+      <td class="td-nome" title="${esc(s.nome)}">${esc(s.nome)}</td>
+      <td class="td-preco">${atual ? fmtBRL(atual.preco13) : '—'} ${varHtml}</td>
+      <td class="td-preco">${atual ? fmtBRL(atual.preco18) : '—'}</td>
+      <td class="td-data">${dataStr}</td>
+      <td class="td-hist"><span class="hist-badge">${s.historico.length}x</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── HISTÓRICO ──
+function abrirHist(sku) {
+  const db = carregar();
+  const s = db.skus[sku];
+  if (!s) return;
+
+  document.getElementById('hist-sku-label').textContent = s.sku;
+  document.getElementById('hist-nome-label').textContent = s.nome;
+
+  const body = document.getElementById('hist-body');
+  if (!s.historico.length) {
+    body.innerHTML = '<div class="hist-empty">Sem histórico para este produto.</div>';
+  } else {
+    body.innerHTML = s.historico.map((h, i) => {
+      const d = new Date(h.data);
+      const dataStr = d.toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'}) + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+      const prox = s.historico[i + 1];
+      const var13 = prox && prox.preco13 > 0 ? ((h.preco13 - prox.preco13) / prox.preco13 * 100) : null;
+      const var18 = prox && prox.preco18 > 0 ? ((h.preco18 - prox.preco18) / prox.preco18 * 100) : null;
+      const varHtml = v => v === null ? '' : v > 0.1
+        ? `<div class="hist-price-var var-up">▲ ${v.toFixed(1)}% vs anterior</div>`
+        : v < -0.1
+        ? `<div class="hist-price-var var-down">▼ ${Math.abs(v).toFixed(1)}% vs anterior</div>`
+        : `<div class="hist-price-var" style="color:var(--text3)">= sem variação</div>`;
+      return `<div class="hist-entry ${i === 0 ? 'latest' : ''}">
+        <span class="hist-entry-badge">${i === 0 ? 'atual' : `v${s.historico.length - i}`}</span>
+        <div class="hist-date">${dataStr}</div>
+        <div class="hist-prices">
+          <div class="hist-price-cell">
+            <div class="hist-price-label">Preço 13%</div>
+            <div class="hist-price-val">${fmtBRL(h.preco13)}</div>
+            ${varHtml(var13)}
+          </div>
+          <div class="hist-price-cell">
+            <div class="hist-price-label">Preço 18%</div>
+            <div class="hist-price-val">${fmtBRL(h.preco18)}</div>
+            ${varHtml(var18)}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('hist-overlay').classList.add('open');
+}
+
+function fecharHist() { document.getElementById('hist-overlay').classList.remove('open'); }
+function fecharHistSe(e) { if (e.target === document.getElementById('hist-overlay')) fecharHist(); }
+
+// ── UTILS ──
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtBRL(v) {
+  if (!v && v !== 0) return '—';
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function limparTudo() {
+  if (!confirm('Apagar todos os dados salvos? Esta ação não pode ser desfeita.')) return;
+  localStorage.removeItem(KEY);
+  renderTudo();
+  document.getElementById('ultima-atualizacao').textContent = '';
+  document.getElementById('btn-limpar').style.display = 'none';
+  document.getElementById('kpi-total').textContent = '—';
+  document.getElementById('kpi-data').textContent = '—';
+  document.getElementById('kpi-data-sub').textContent = '';
+  document.getElementById('kpi-imports').textContent = '—';
+  document.getElementById('kpi-var').textContent = '—';
+}
+
+// Fecha modais com ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { fecharImport(); fecharHist(); }
+});
+
+// Init
+renderTudo();
+</script>
+</body>
+</html>
