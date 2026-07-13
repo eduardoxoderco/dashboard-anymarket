@@ -874,6 +874,7 @@ function normalizarProduto(p) {
     marcaId:String(p.brand?.id||''), catId:String(p.category?.id||''),
     preco, estoque, valor:preco*estoque,
     precoClassico:null, precoPremium:null, loadingML:false,
+    precoClassicoML:null, precoPremiumML:null, precoClassicoOrig:null, precoPremiumOrig:null,
     anuncioML:detectarAnuncioML(p),
     mlbId: mlbId,
     catalogProductId: null,
@@ -1445,6 +1446,56 @@ async function buscarPrecosML(produtos) {
         p.precoPremium=getPreco(premium)||getPreco(qualquer);
         p.anuncioML=anunciosML.length>0?true:(ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length>0?false:null);
 
+        // Busca preço real do ML via API (captura promoções, campanhas etc.)
+        if (state.mlToken && mlTokenValido()) {
+          // Coleta mlbIds de Clássico e Premium
+          const mlbClassico = classico ? (
+            classico.idInMarketplace ||
+            classico.fields?.item_id ||
+            classico.externalId || null
+          ) : null;
+          const mlbPremium = premium ? (
+            premium.idInMarketplace ||
+            premium.fields?.item_id ||
+            premium.externalId || null
+          ) : null;
+
+          const buscarPrecoItemML = async (mlbId) => {
+            if (!mlbId) return null;
+            try {
+              const r = await fetch(
+                `https://api.mercadolibre.com/items/${mlbId}?attributes=price,original_price,sale_price`,
+                { headers: { 'Authorization': 'Bearer ' + state.mlToken } }
+              );
+              if (!r.ok) return null;
+              const d = await r.json();
+              return {
+                preco: parseFloat(d.sale_price?.amount || d.price || 0),
+                original: parseFloat(d.original_price || d.price || 0),
+                emPromocao: d.sale_price != null && d.sale_price.amount < (d.original_price || d.price),
+              };
+            } catch(e) { return null; }
+          };
+
+          const [dadosClassico, dadosPremium] = await Promise.all([
+            buscarPrecoItemML(mlbClassico),
+            buscarPrecoItemML(mlbPremium),
+          ]);
+
+          if (dadosClassico) {
+            p.precoClassicoML = dadosClassico.preco;
+            p.precoClassicoOrig = dadosClassico.emPromocao ? dadosClassico.original : null;
+          }
+          if (dadosPremium) {
+            p.precoPremiumML = dadosPremium.preco;
+            p.precoPremiumOrig = dadosPremium.emPromocao ? dadosPremium.original : null;
+          }
+
+          // Recalcula precoClassico e precoPremium com preço real ML se disponível
+          if (p.precoClassicoML) p.precoClassico = p.precoClassicoML;
+          if (p.precoPremiumML)  p.precoPremium  = p.precoPremiumML;
+        }
+
         // Extrai MLB do retorno — prefere Premium (gold_pro) sobre Clássico (gold_special)
         // pois anúncios Premium têm catalog_product_id mais consistente na API ML
         if (!p.mlbId && anunciosML.length > 0) {
@@ -1549,10 +1600,22 @@ function renderizar(){
 function renderPrecoML(p){
   if(!p.skuApiId) return `<span style="color:var(--text3);font-size:11px;">—</span>`;
   if(p.precoClassico===null&&p.precoPremium===null) return `<span style="color:var(--text3);font-size:10px;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border:1.5px solid var(--accent);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite"></span>carregando</span>`;
-  const cls=p.precoClassico?`<div style="font-size:11px;color:var(--text2)"><span style="font-size:9px;color:var(--text3);display:block">Clássico</span>${fmtBRL(p.precoClassico)}</div>`:'';
-  const prm=p.precoPremium?`<div style="font-size:11px;color:var(--text)"><span style="font-size:9px;color:var(--text3);display:block">Premium</span><strong>${fmtBRL(p.precoPremium)}</strong></div>`:'';
+
+  const renderLinha = (label, preco, precoOrig) => {
+    if (!preco) return '';
+    const emPromocao = precoOrig && precoOrig > preco;
+    const badge = emPromocao ? `<span style="font-size:9px;background:#fef3dc;color:#8a5a00;border-radius:3px;padding:1px 4px;margin-left:3px;font-weight:600">PROMO</span>` : '';
+    const orig = emPromocao ? `<span style="font-size:9px;color:var(--text3);text-decoration:line-through;margin-right:3px">${fmtBRL(precoOrig)}</span>` : '';
+    return `<div style="font-size:11px;color:var(--text2);line-height:1.6">
+      <span style="font-size:9px;color:var(--text3);display:block">${label}${badge}</span>
+      ${orig}<span style="font-weight:${label==='Premium'?'700':'400'};color:${emPromocao?'var(--green)':'var(--text)'}">${fmtBRL(preco)}</span>
+    </div>`;
+  };
+
+  const cls = renderLinha('Clássico', p.precoClassico, p.precoClassicoOrig);
+  const prm = renderLinha('Premium',  p.precoPremium,  p.precoPremiumOrig);
   if(!cls&&!prm) return `<span style="color:var(--text3);font-size:11px;">Sem anúncio</span>`;
-  return `<div style="display:flex;flex-direction:column;gap:3px;min-width:90px">${cls}${prm}</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:2px;min-width:100px">${cls}${prm}</div>`;
 }
 
 function renderTabela(tbodyId,lista,tipo){
