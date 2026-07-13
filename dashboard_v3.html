@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard ANYMARKET — Oportunidades</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f3ef; --surface: #ffffff; --surface2: #f9f8f5;
+    --border: #e4e3dc; --border2: #d0cfc7; --text: #1a1a18;
+    --text2: #5a5a56; --text3: #9a9a94; --accent: #2d4a8a;
+    --accent-light: #e8edf7; --green: #2d6e3e; --green-bg: #eaf4ee;
+    --amber: #8a5a00; --amber-bg: #fef3dc; --red: #8a2020;
+    --red-bg: #fdeaea; --radius: 8px; --radius-lg: 12px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
+
+  #setup-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 36px; max-width: 520px; width: 100%; }
+  .setup-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+  .setup-logo-icon { width: 34px; height: 34px; background: var(--accent); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
+  .setup-logo-icon svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .setup-logo-text { font-size: 15px; font-weight: 600; }
+  .setup-logo-sub { font-size: 11px; color: var(--text3); }
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-title { font-size: 17px; font-weight: 600; margin-bottom: 5px; }
+  .step-desc { font-size: 13px; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+  .step-indicator { display: flex; align-items: center; gap: 6px; margin-bottom: 20px; }
+  .step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .step-dot.active { background: var(--accent); color: #fff; }
+  .step-dot.done { background: var(--green-bg); color: var(--green); }
+  .step-dot.pending { background: var(--border); color: var(--text3); }
+  .step-line { flex: 1; height: 1px; background: var(--border); }
+  .field-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
+  .field-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border2); border-radius: var(--radius); font-size: 13px; font-family: 'SF Mono', monospace; color: var(--text); background: var(--surface2); outline: none; transition: border-color 0.15s; }
+  .field-input:focus { border-color: var(--accent); }
+  .field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .primary-btn { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 14px; transition: opacity 0.15s; }
+  .primary-btn:hover { opacity: 0.88; }
+  .primary-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .secondary-btn { width: 100%; padding: 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text2); font-size: 13px; cursor: pointer; margin-top: 8px; transition: background 0.15s; }
+  .secondary-btn:hover { background: var(--bg); }
+  .demo-btn { width: 100%; padding: 10px; border: 1px dashed var(--border2); border-radius: var(--radius); background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer; margin-top: 8px; }
+  .demo-btn:hover { background: var(--bg); }
+  .setup-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+  .loading-indicator { display: none; align-items: center; gap: 10px; padding: 12px; background: var(--accent-light); border-radius: var(--radius); margin-top: 12px; font-size: 13px; color: var(--accent); }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(45,74,138,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+
+  /* ML AUTH BANNER */
+  .ml-auth-banner { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+  .ml-auth-banner.connected { border-color: #a8d8a8; background: var(--green-bg); }
+  .ml-auth-banner.disconnected { border-color: #f5d98a; background: var(--amber-bg); }
+  .ml-auth-icon { width: 32px; height: 32px; border-radius: 6px; background: #FFE600; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #333; flex-shrink: 0; font-family: sans-serif; }
+  .ml-auth-body { flex: 1; }
+  .ml-auth-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .ml-auth-sub { font-size: 11px; color: var(--text2); }
+  .ml-auth-btn { padding: 6px 12px; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; border: none; white-space: nowrap; }
+  .ml-auth-btn.connect { background: #FFE600; color: #333; }
+  .ml-auth-btn.connect:hover { background: #f0d800; }
+  .ml-auth-btn.disconnect { background: var(--border); color: var(--text2); }
+
+  /* LISTAS DE SELEÇÃO */
+  .sel-box { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; }
+  .sel-box-header { padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 500; color: var(--text2); display: flex; align-items: center; justify-content: space-between; }
+  .sel-box-header span { font-size: 11px; color: var(--accent); cursor: pointer; }
+  .sel-search { width: 100%; padding: 7px 10px; border: none; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); background: var(--surface); outline: none; }
+  .sel-search:focus { background: var(--accent-light); }
+  .sel-search::placeholder { color: var(--text3); }
+  .sel-list { max-height: 200px; overflow-y: auto; padding: 4px; }
+  .sel-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; transition: background 0.1s; }
+  .sel-item:hover { background: var(--surface2); }
+  .sel-item input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+  .sel-item-name { flex: 1; color: var(--text); line-height: 1.4; }
+  .sel-path { font-size: 10px; color: var(--text3); display: block; }
+  .sel-item-count { font-size: 10px; color: var(--text3); white-space: nowrap; padding-top: 2px; }
+  .sel-empty { padding: 14px; text-align: center; font-size: 12px; color: var(--text3); }
+  .sel-info { font-size: 12px; color: var(--text2); margin-bottom: 10px; padding: 8px 12px; border-radius: var(--radius); border: 1px solid #f0d090; background: var(--amber-bg); }
+  .sel-info.ok { background: var(--green-bg); border-color: #a8d8a8; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 2px; min-height: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-light); color: var(--accent); border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: 500; max-width: 220px; }
+  .chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip-x { cursor: pointer; font-size: 15px; line-height: 1; opacity: 0.5; flex-shrink: 0; }
+  .chip-x:hover { opacity: 1; }
+
+  /* TOPBAR */
+  #app { display: none; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .topbar-logo svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .topbar-title { font-size: 14px; font-weight: 600; }
+  .status-pill { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .status-live { background: var(--green-bg); color: var(--green); }
+  .status-demo { background: var(--amber-bg); color: var(--amber); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .last-update { font-size: 11px; color: var(--text3); }
+  .topbar-btn { padding: 5px 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.15s; }
+  .topbar-btn:hover { background: var(--bg); }
+  .topbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ml-status-pill { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid transparent; }
+  .ml-status-pill.on { background: #fff9cc; color: #7a6000; border-color: #f0d800; }
+  .ml-status-pill.off { background: var(--surface2); color: var(--text3); border-color: var(--border); }
+  .ml-status-pill:hover { opacity: 0.8; }
+
+  /* MAIN */
+  .main { padding: 16px 24px; max-width: 1400px; margin: 0 auto; }
+  .rate-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+  .rate-bar-label { font-size: 11px; color: var(--text2); white-space: nowrap; }
+  .rate-track { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .rate-fill { height: 100%; border-radius: 3px; transition: width 0.4s, background 0.4s; }
+  .rate-count { font-size: 11px; color: var(--text3); white-space: nowrap; min-width: 100px; text-align: right; }
+  .active-filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 14px; margin-bottom: 12px; display: none; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .af-label { font-size: 11px; color: var(--text3); }
+  .af-chip { background: var(--accent-light); color: var(--accent); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .af-chip.marca { background: var(--green-bg); color: var(--green); }
+  .af-edit { font-size: 11px; color: var(--accent); cursor: pointer; margin-left: auto; text-decoration: underline; white-space: nowrap; }
+  .filters { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-group label { font-size: 11px; color: var(--text3); font-weight: 500; }
+  .filter-group select { padding: 6px 10px; border: 1px solid var(--border2); border-radius: 6px; font-size: 12px; color: var(--text); background: var(--surface2); outline: none; min-width: 130px; cursor: pointer; }
+  .range-row { display: flex; align-items: center; gap: 8px; }
+  .range-val { font-size: 12px; color: var(--accent); font-weight: 500; min-width: 75px; }
+  .filter-group input[type=range] { width: 120px; }
+  .filter-clear { padding: 6px 12px; border: 1px solid var(--border2); border-radius: 6px; background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; align-self: flex-end; }
+  .filter-clear:hover { background: var(--bg); }
+  .filter-count { font-size: 11px; color: var(--text3); align-self: flex-end; padding-bottom: 7px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 15px; }
+  .kpi-label { font-size: 11px; color: var(--text3); margin-bottom: 5px; }
+  .kpi-val { font-size: 22px; font-weight: 600; line-height: 1; }
+  .kpi-sub { font-size: 11px; margin-top: 4px; color: var(--text3); }
+  .kpi-val.green { color: var(--green); } .kpi-val.amber { color: var(--amber); }
+  .kpi-val.red { color: var(--red); } .kpi-val.blue { color: var(--accent); }
+  .section-header { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+  .section-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .section-badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; cursor: pointer; user-select: none; }
+  thead th:hover { color: var(--accent); }
+  thead th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); }
+  .td-mono { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--text3); }
+  .td-nome { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .td-price { font-weight: 600; text-align: right; white-space: nowrap; }
+  .td-right { text-align: right; white-space: nowrap; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .stock-low { color: var(--red); font-weight: 500; }
+  .stock-ok { color: var(--green); }
+  .empty-state { padding: 36px 20px; text-align: center; color: var(--text3); font-size: 13px; }
+  .error-bar { background: var(--red-bg); border: 1px solid #f5c2c2; border-radius: var(--radius); padding: 9px 14px; margin-bottom: 12px; font-size: 12px; color: var(--red); display: none; align-items: center; gap: 8px; }
+  .cooldown-bar { background: var(--amber-bg); border: 1px solid #f5d98a; border-radius: var(--radius); padding: 9px 14px; margin-bottom: 12px; font-size: 12px; color: var(--amber); display: none; align-items: center; gap: 8px; }
+  .footer { text-align: center; font-size: 11px; color: var(--text3); padding: 18px 0 28px; border-top: 1px solid var(--border); margin-top: 6px; }
+
+  /* COLUNA CONCORRENTES ML */
+  .concorrentes-cell { min-width: 160px; cursor: pointer; }
+  .concorrentes-cell:hover .concorrentes-preview { background: var(--accent-light); }
+  .concorrentes-preview { padding: 5px 8px; border-radius: 6px; transition: background 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .conc-preco { font-size: 12px; font-weight: 600; }
+  .conc-badge { font-size: 10px; padding: 2px 6px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .conc-badge.ok { background: var(--green-bg); color: var(--green); }
+  .conc-badge.warn { background: var(--amber-bg); color: var(--amber); }
+  .conc-badge.danger { background: var(--red-bg); color: var(--red); }
+  .conc-badge.none { background: var(--surface2); color: var(--text3); }
+  .conc-loading { display: inline-flex; align-items: center; gap: 5px; color: var(--text3); font-size: 11px; }
+  .conc-spinner { width: 10px; height: 10px; border: 1.5px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .conc-hint { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* MODAL CONCORRENTES */
+  /* MODAL — layout fixo sem scroll horizontal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); width: 100%; max-width: 780px; max-height: 92vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+  .modal-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .modal-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; word-break: break-word; }
+  .modal-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .modal-close { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--text2); flex-shrink: 0; }
+  .modal-close:hover { background: var(--bg); }
+  .modal-body { padding: 14px 18px; }
+  /* Card de resumo: seu preço + posição + diff do 1º */
+  .modal-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+  .modal-summary-cell { background: var(--surface); padding: 10px 12px; }
+  .modal-summary-label { font-size: 10px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .modal-summary-val { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1; }
+  .modal-summary-sub { font-size: 10px; color: var(--text3); margin-top: 3px; }
+  .modal-summary-val.green { color: var(--green); }
+  .modal-summary-val.red { color: var(--red); }
+  .modal-summary-val.amber { color: var(--amber); }
+  .modal-summary-val.blue { color: var(--accent); }
+  /* Tabela sem overflow */
+  .modal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .modal-table col.c-pos { width: 38px; }
+  .modal-table col.c-seller { width: auto; }
+  .modal-table col.c-price { width: 130px; }
+  .modal-table col.c-diff { width: 100px; }
+  .modal-table th { font-size: 10px; color: var(--text3); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; overflow: hidden; }
+  .modal-table th.right { text-align: right; }
+  .modal-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
+  .modal-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+  .modal-table tr:last-child td { border-bottom: none; }
+  .modal-table tr.my-row td { background: var(--accent-light); }
+  .modal-table tr.my-row-sep td { border-top: 2px dashed var(--border2); background: var(--accent-light); }
+  .modal-table td.right { text-align: right; }
+  .pos-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .pos-1 { background: #ffd700; color: #7a5800; }
+  .pos-2 { background: #e8e8e8; color: #555; }
+  .pos-3 { background: #e8c9a0; color: #7a4a00; }
+  .pos-n { background: var(--surface2); color: var(--text3); }
+  .diff-pos { color: var(--green); font-weight: 600; }
+  .diff-neg { color: var(--red); font-weight: 600; }
+  .diff-zero { color: var(--text3); }
+  .seller-name { white-space: nowrap; display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .modal-footer { padding: 10px 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-footer-note { font-size: 10px; color: var(--text3); }
+  .modal-footer-link { font-size: 11px; color: var(--accent); text-decoration: none; font-weight: 500; }
+  .modal-footer-link:hover { text-decoration: underline; }
+  .modal-loading { padding: 36px 20px; text-align: center; color: var(--text3); font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .modal-spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .modal-error { padding: 24px 20px; text-align: center; color: var(--red); font-size: 13px; }
+
+  @keyframes spin { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+  @media(max-width:700px){.kpi-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- MODAL CONCORRENTES -->
+<div class="modal-overlay" id="modal-concorrentes" onclick="fecharModalSe(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-produto-nome">—</div>
+        <div class="modal-sub" id="modal-catalog-id">Catálogo ML: —</div>
+      </div>
+      <button class="modal-close" onclick="fecharModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body-content">
+      <div class="modal-loading"><div class="modal-spinner"></div>Buscando concorrentes...</div>
+    </div>
+    <div class="modal-footer">
+      <span class="modal-footer-note" id="modal-footer-note">Top 5 sellers do catálogo · Dados em tempo real</span>
+      <a class="modal-footer-link" id="modal-ml-link" href="#" target="_blank">Ver no Mercado Livre ↗</a>
+    </div>
+  </div>
+</div>
+
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="setup-logo-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div><div class="setup-logo-text">Dashboard ANYMARKET</div><div class="setup-logo-sub">Oportunidades de Produto</div></div>
+    </div>
+
+    <!-- STEP 1: Token -->
+    <div class="step active" id="step-token">
+      <div class="step-indicator">
+        <div class="step-dot active">1</div><div class="step-line"></div>
+        <div class="step-dot pending">2</div><div class="step-line"></div>
+        <div class="step-dot pending">3</div>
+      </div>
+      <div class="step-title">Conectar à API</div>
+      <p class="step-desc">Cole seu token de acesso. Ele fica salvo apenas no seu navegador.</p>
+      <label class="field-label">Token de acesso (gumgaToken)</label>
+      <input type="password" id="token-input" class="field-input" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+      <div class="field-hint">ANYMARKET → Configurações → Integrações → API</div>
+      <div class="loading-indicator" id="load-indicator">
+        <div class="spinner"></div><span id="load-text">Carregando...</span>
+      </div>
+      <button class="primary-btn" id="btn-avancar" onclick="carregarCategorias()">Avançar →</button>
+      <hr class="setup-divider">
+      <button class="demo-btn" onclick="iniciarDemo()">▶ Entrar com dados de demonstração</button>
+    </div>
+
+    <!-- STEP 2: Categorias -->
+    <div class="step" id="step-categorias">
+      <div class="step-indicator">
+        <div class="step-dot done">✓</div><div class="step-line"></div>
+        <div class="step-dot active">2</div><div class="step-line"></div>
+        <div class="step-dot pending">3</div>
+      </div>
+      <div class="step-title">Selecionar categorias</div>
+      <p class="step-desc">Escolha as categorias de produtos que quer analisar.</p>
+      <div class="sel-info" id="info-cats">Selecione ao menos uma categoria para continuar.</div>
+      <div class="sel-box">
+        <div class="sel-box-header">Categorias <span onclick="toggleTodosCats()">Todas</span></div>
+        <input class="sel-search" id="search-cats" placeholder="Buscar categoria..." oninput="filtrarCats()">
+        <div class="sel-list" id="lista-cats"></div>
+      </div>
+      <div class="chips" id="chips-cats"></div>
+      <button class="primary-btn" id="btn-avancar-marcas" onclick="carregarMarcasDasCategorias()" disabled>Avançar → Ver marcas disponíveis</button>
+      <button class="secondary-btn" onclick="voltarStep('step-token')">← Voltar</button>
+    </div>
+
+    <!-- STEP 3: Marcas -->
+    <div class="step" id="step-marcas">
+      <div class="step-indicator">
+        <div class="step-dot done">✓</div><div class="step-line"></div>
+        <div class="step-dot done">✓</div><div class="step-line"></div>
+        <div class="step-dot active">3</div>
+      </div>
+      <div class="step-title">Filtrar por marca</div>
+      <p class="step-desc">Estas são as marcas disponíveis nas categorias selecionadas. Selecione as que deseja ou busque todas.</p>
+      <div class="loading-indicator" id="load-marcas">
+        <div class="spinner"></div><span id="load-marcas-text">Carregando marcas...</span>
+      </div>
+      <div class="sel-info ok" id="info-marcas">Todas as marcas selecionadas. Desmarque as que não quer.</div>
+      <div class="sel-box">
+        <div class="sel-box-header">Marcas encontradas <span onclick="toggleTodosMarcas()">Todas</span></div>
+        <input class="sel-search" id="search-marcas" placeholder="Buscar marca..." oninput="filtrarMarcas()">
+        <div class="sel-list" id="lista-marcas"></div>
+      </div>
+      <div class="chips" id="chips-marcas"></div>
+      <button class="primary-btn" id="btn-buscar" onclick="iniciarBusca()">Buscar produtos</button>
+      <button class="secondary-btn" onclick="voltarStep('step-categorias')">← Voltar</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div class="topbar-title">ANYMARKET — Oportunidades</div>
+      <div id="status-pill" class="status-pill status-live"><div class="status-dot"></div><span id="status-text">Conectado</span></div>
+    </div>
+    <div class="topbar-right">
+      <div id="ml-topbar-status" class="ml-status-pill off" onclick="abrirAuthML()" title="Clique para conectar ao Mercado Livre">
+        <span style="font-weight:800;font-size:12px;color:#f0c000">ML</span>
+        <span id="ml-topbar-txt">Desconectado</span>
+      </div>
+      <span class="last-update" id="last-update-txt"></span>
+      <button class="topbar-btn" id="refresh-btn" onclick="recarregarDados()" disabled>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>Atualizar
+      </button>
+      <button class="topbar-btn" onclick="editarSelecao()">Editar seleção</button>
+      <button class="topbar-btn" onclick="sair()">Trocar token</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="rate-bar">
+      <span class="rate-bar-label">Chamadas à API</span>
+      <div class="rate-track"><div class="rate-fill" id="rate-fill" style="width:0%;background:var(--green)"></div></div>
+      <span class="rate-count" id="rate-count">0 / 200 hoje</span>
+    </div>
+
+    <!-- ML AUTH BANNER -->
+    <div class="ml-auth-banner disconnected" id="ml-banner" style="display:none">
+      <div class="ml-auth-icon">ML</div>
+      <div class="ml-auth-body">
+        <div class="ml-auth-title" id="ml-banner-title">Conecte ao Mercado Livre para ver concorrentes</div>
+        <div class="ml-auth-sub" id="ml-banner-sub">A comparação de catálogo requer autenticação com sua conta ML</div>
+      </div>
+      <button class="ml-auth-btn connect" id="ml-banner-btn" onclick="abrirAuthML()">Conectar ML</button>
+    </div>
+
+    <div class="active-filters" id="active-filters"></div>
+    <div class="error-bar" id="error-bar"><span id="error-msg"></span></div>
+    <div class="cooldown-bar" id="cooldown-bar"><span id="cooldown-msg"></span></div>
+    <div class="filters">
+      <div class="filter-group">
+        <label>Ticket mínimo</label>
+        <div class="range-row">
+          <input type="range" id="f-ticket" min="0" max="10000" step="100" value="500" oninput="atualizarTicket(this)">
+          <span class="range-val" id="f-ticket-val">R$ 500</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Estoque mínimo</label>
+        <select id="f-estoque" onchange="aplicarFiltros()">
+          <option value="0">Qualquer</option>
+          <option value="1">≥ 1 un.</option>
+          <option value="5" selected>≥ 5 un.</option>
+          <option value="10">≥ 10 un.</option>
+          <option value="20">≥ 20 un.</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Marca</label>
+        <select id="f-marca" onchange="aplicarFiltros()"><option value="">Todas</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Categoria</label>
+        <select id="f-cat" onchange="aplicarFiltros()"><option value="">Todas</option></select>
+      </div>
+      <button class="filter-clear" onclick="limparFiltros()">Limpar filtros</button>
+      <span class="filter-count" id="filter-count"></span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">SKUs carregados</div><div class="kpi-val blue" id="kpi-total">—</div><div class="kpi-sub" id="kpi-total-sub"></div></div>
+      <div class="kpi"><div class="kpi-label">Ticket alto + estoque</div><div class="kpi-val green" id="kpi-opp">—</div><div class="kpi-sub" id="kpi-opp-sub"></div></div>
+      <div class="kpi"><div class="kpi-label">Sem anúncio no ML</div><div class="kpi-val red" id="kpi-sem">—</div><div class="kpi-sub" id="kpi-sem-sub"></div></div>
+      <div class="kpi"><div class="kpi-label">Valor total em estoque</div><div class="kpi-val amber" id="kpi-valor">—</div><div class="kpi-sub">produtos filtrados</div></div>
+    </div>
+    <div class="section-header">
+      <div class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Ticket alto + estoque disponível</div>
+      <span class="section-badge" id="badge-opp">0</span>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl-opp"><thead><tr>
+        <th onclick="sortTabela('opp','sku')">SKU</th>
+        <th onclick="sortTabela('opp','nome')">Produto</th>
+        <th onclick="sortTabela('opp','marca')">Marca</th>
+        <th onclick="sortTabela('opp','categoria')">Categoria</th>
+        <th style="text-align:right" onclick="sortTabela('opp','preco')">Preço ML</th>
+        <th style="text-align:right" onclick="sortTabela('opp','estoque')">Estoque</th>
+        <th style="text-align:right" onclick="sortTabela('opp','valor')">Valor em estoque</th>
+        <th onclick="sortTabela('opp','anuncioML')">Status ML</th>
+        <th>Concorrentes ML</th>
+      </tr></thead><tbody id="tbody-opp"></tbody></table>
+    </div>
+    <div class="section-header">
+      <div class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Produtos sem anúncio no Mercado Livre</div>
+      <span class="section-badge" id="badge-sem">0</span>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl-sem"><thead><tr>
+        <th onclick="sortTabela('sem','sku')">SKU</th>
+        <th onclick="sortTabela('sem','nome')">Produto</th>
+        <th onclick="sortTabela('sem','marca')">Marca</th>
+        <th onclick="sortTabela('sem','categoria')">Categoria</th>
+        <th style="text-align:right" onclick="sortTabela('sem','preco')">Preço ML</th>
+        <th style="text-align:right" onclick="sortTabela('sem','estoque')">Estoque</th>
+        <th style="text-align:right" onclick="sortTabela('sem','valor')">Valor em estoque</th>
+        <th style="text-align:right" onclick="sortTabela('sem','valor')">Receita potencial</th>
+        <th>Concorrentes ML</th>
+      </tr></thead><tbody id="tbody-sem"></tbody></table>
+    </div>
+    <div class="footer">Dashboard ANYMARKET · Token armazenado apenas localmente · Dados conforme última sincronização</div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  BASE_URL: 'https://api.anymarket.com.br/v2',
+  PAGE_SIZE: 100, DELAY_MS: 600, MAX_PAGINAS: 20,
+  MAX_CHAMADAS_DIA: 200, COOLDOWN_MIN: 30,
+  KEY_TOKEN: 'any_token', KEY_CALLS: 'any_calls',
+  KEY_LAST: 'any_last_refresh', KEY_SELECAO: 'any_selecao',
+  ML_CLIENT_ID: '1740063497755024',
+  ML_REDIRECT_URI: 'https://eduardoxoderco.github.io/dashboard-anymarket/dashboard_anymarket.html',
+  ML_AUTH_URL: 'https://auth.mercadolivre.com.br/authorization',
+  ML_TOKEN_URL: 'https://api.mercadolibre.com/oauth/token',
+  KEY_ML_TOKEN: 'ml_access_token',
+  KEY_ML_SELLER: 'ml_seller_id',
+  KEY_ML_REFRESH: 'ml_refresh_token',
+  KEY_ML_EXPIRES: 'ml_token_expires',
+};
+
+let state = {
+  token: null, isDemo: false,
+  produtos: [], filtrados: [],
+  categoriasDisponiveis: [], categoriasSelecionadas: [],
+  marcasDisponiveis: [], marcasSelecionadas: [],
+  chamadas: 0, chamadas_data: null,
+  ultimo_refresh: null, carregando: false,
+  sort: { opp: {campo:'preco',dir:'desc'}, sem: {campo:'valor',dir:'desc'} },
+  mlToken: null, mlSellerId: null,
+  concorrentesCache: {},
+};
+
+// ── UTILS ──
+const delay = ms => new Promise(r => setTimeout(r, ms));
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function bold(txt,term){if(!term)return txt;return txt.replace(new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<strong>$1</strong>');}
+function fmtBRL(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtInt(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR');}
+function fmtPct(v){const s=v>0?'+':'';return `${s}${v.toFixed(1)}%`;}
+
+// ── RATE LIMIT ──
+function carregarChamadas() {
+  const hoje = new Date().toDateString();
+  const s = JSON.parse(localStorage.getItem(CONFIG.KEY_CALLS) || '{}');
+  state.chamadas = s.data === hoje ? (s.count||0) : 0;
+  state.chamadas_data = hoje;
+}
+function registrarChamada(n=1) {
+  state.chamadas += n;
+  localStorage.setItem(CONFIG.KEY_CALLS, JSON.stringify({data:state.chamadas_data,count:state.chamadas}));
+  atualizarRateBar();
+}
+function podeCarregar() { return true; } // Limite removido — apenas contador
+function atualizarRateBar() {
+  const pct = Math.min(100,(state.chamadas/CONFIG.MAX_CHAMADAS_DIA)*100);
+  const f = document.getElementById('rate-fill');
+  f.style.width = pct+'%';
+  f.style.background = pct<60?'var(--green)':pct<85?'var(--amber)':'var(--red)';
+  document.getElementById('rate-count').textContent = state.isDemo
+    ? 'Modo demo — sem chamadas' : `${state.chamadas} / ${CONFIG.MAX_CHAMADAS_DIA} hoje`;
+}
+function podeFazerRefresh() {
+  if (!state.ultimo_refresh) return true;
+  return (Date.now()-state.ultimo_refresh)/60000 >= CONFIG.COOLDOWN_MIN;
+}
+
+// ── ML OAUTH ──
+function mlTokenValido() {
+  const exp = localStorage.getItem(CONFIG.KEY_ML_EXPIRES);
+  return state.mlToken && exp && Date.now() < parseInt(exp);
+}
+
+function abrirAuthML() {
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: CONFIG.ML_CLIENT_ID,
+    redirect_uri: CONFIG.ML_REDIRECT_URI,
+    state: 'ml_oauth_' + Date.now(),
+  });
+  window.location.href = CONFIG.ML_AUTH_URL + '?' + params.toString();
+}
+
+async function trocarCodePorToken(code) {
+  // IMPORTANTE: trocar code por token exige client_secret no backend
+  // GitHub Pages é estático — não há backend. Usamos um proxy via CORS.
+  // Para produção, idealmente usar um worker/edge function.
+  // Por ora, notificamos o usuário que o seller_id é necessário.
+  try {
+    const resp = await fetch(CONFIG.ML_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: CONFIG.ML_CLIENT_ID,
+        client_secret: localStorage.getItem('ml_client_secret') || '',
+        code: code,
+        redirect_uri: CONFIG.ML_REDIRECT_URI,
+      }),
+    });
+    if (!resp.ok) throw new Error('Falha ao trocar código por token');
+    const data = await resp.json();
+    salvarMLToken(data);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function salvarMLToken(data) {
+  state.mlToken = data.access_token;
+  state.mlSellerId = String(data.user_id || '');
+  const expires = Date.now() + (data.expires_in * 1000) - 60000;
+  localStorage.setItem(CONFIG.KEY_ML_TOKEN, data.access_token);
+  localStorage.setItem(CONFIG.KEY_ML_SELLER, state.mlSellerId);
+  localStorage.setItem(CONFIG.KEY_ML_REFRESH, data.refresh_token || '');
+  localStorage.setItem(CONFIG.KEY_ML_EXPIRES, String(expires));
+  atualizarStatusML();
+}
+
+async function renovarTokenML() {
+  const refresh = localStorage.getItem(CONFIG.KEY_ML_REFRESH);
+  if (!refresh) return false;
+  try {
+    const resp = await fetch(CONFIG.ML_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: CONFIG.ML_CLIENT_ID,
+        client_secret: localStorage.getItem('ml_client_secret') || '',
+        refresh_token: refresh,
+      }),
+    });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    salvarMLToken(data);
+    return true;
+  } catch(e) { return false; }
+}
+
+function carregarMLToken() {
+  state.mlToken = localStorage.getItem(CONFIG.KEY_ML_TOKEN);
+  state.mlSellerId = localStorage.getItem(CONFIG.KEY_ML_SELLER);
+  if (!mlTokenValido() && localStorage.getItem(CONFIG.KEY_ML_REFRESH)) {
+    renovarTokenML();
+  }
+}
+
+function atualizarStatusML() {
+  const connected = mlTokenValido();
+  const pill = document.getElementById('ml-topbar-status');
+  const txt = document.getElementById('ml-topbar-txt');
+  const banner = document.getElementById('ml-banner');
+  if (pill) {
+    pill.className = 'ml-status-pill ' + (connected ? 'on' : 'off');
+    if (txt) txt.textContent = connected ? `ML ${state.mlSellerId ? '#'+state.mlSellerId : 'Conectado'}` : 'Conectar ML';
+  }
+  if (banner) {
+    if (connected) {
+      banner.className = 'ml-auth-banner connected';
+      document.getElementById('ml-banner-title').textContent = 'Mercado Livre conectado — comparação de catálogo ativa';
+      document.getElementById('ml-banner-sub').textContent = `Seller ID: ${state.mlSellerId} · Token válido`;
+      document.getElementById('ml-banner-btn').textContent = 'Desconectar';
+      document.getElementById('ml-banner-btn').onclick = desconectarML;
+      document.getElementById('ml-banner-btn').className = 'ml-auth-btn disconnect';
+    } else {
+      banner.className = 'ml-auth-banner disconnected';
+      document.getElementById('ml-banner-title').textContent = 'Conecte ao Mercado Livre para ver concorrentes';
+      document.getElementById('ml-banner-sub').textContent = 'A comparação de catálogo requer autenticação com sua conta ML';
+      document.getElementById('ml-banner-btn').textContent = 'Conectar ML';
+      document.getElementById('ml-banner-btn').onclick = abrirAuthML;
+      document.getElementById('ml-banner-btn').className = 'ml-auth-btn connect';
+    }
+  }
+}
+
+function desconectarML() {
+  state.mlToken = null; state.mlSellerId = null;
+  [CONFIG.KEY_ML_TOKEN, CONFIG.KEY_ML_SELLER, CONFIG.KEY_ML_REFRESH, CONFIG.KEY_ML_EXPIRES].forEach(k => localStorage.removeItem(k));
+  state.concorrentesCache = {};
+  atualizarStatusML();
+  renderizar();
+}
+
+// Verifica se voltou do OAuth ML com ?code=
+async function verificarOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+  // Limpa a URL
+  window.history.replaceState({}, '', window.location.pathname);
+  // Precisa client_secret para trocar — solicita ao usuário
+  let secret = localStorage.getItem('ml_client_secret');
+  if (!secret) {
+    secret = prompt('Para completar a autenticação ML, informe seu Client Secret do app Mercado Livre:');
+    if (!secret) return;
+    localStorage.setItem('ml_client_secret', secret);
+  }
+  const ok = await trocarCodePorToken(code);
+  if (ok) {
+    atualizarStatusML();
+    alert('✅ Mercado Livre conectado com sucesso!');
+  } else {
+    alert('❌ Falha ao autenticar com o Mercado Livre. Verifique o Client Secret e tente novamente.');
+  }
+}
+
+// ── API ANYMARKET ──
+async function apiFetch(path) {
+  const resp = await fetch(CONFIG.BASE_URL+path, {headers:{'gumgaToken':state.token}});
+  registrarChamada(1);
+  if (resp.status===401) throw new Error('Token inválido ou expirado.');
+  if (resp.status===429) throw new Error('Limite da API atingido (429). Aguarde alguns minutos.');
+  if (!resp.ok) throw new Error(`Erro da API: ${resp.status}`);
+  return resp.json();
+}
+
+// ── API MERCADO LIVRE ──
+async function mlFetch(path) {
+  if (!state.mlToken) throw new Error('Não autenticado no ML');
+  const resp = await fetch('https://api.mercadolibre.com' + path, {
+    headers: { 'Authorization': 'Bearer ' + state.mlToken }
+  });
+  if (resp.status === 401) {
+    const renovado = await renovarTokenML();
+    if (!renovado) throw new Error('Token ML expirado. Reconecte.');
+    return mlFetch(path);
+  }
+  if (!resp.ok) throw new Error(`Erro ML API: ${resp.status}`);
+  return resp.json();
+}
+
+// Busca catalog_product_id de um item MLB
+async function buscarCatalogId(mlbId) {
+  try {
+    // Busca todos os atributos relevantes — catalog_listing pode vir false mesmo sendo catálogo
+    const data = await mlFetch(`/items/${mlbId}?attributes=catalog_product_id,catalog_listing,listing_type_id,title`);
+
+    // 1. Caso ideal: catalog_product_id já vem preenchido
+    if (data.catalog_product_id) return data.catalog_product_id;
+
+    // 2. catalog_listing true mas sem catalog_product_id — busca via search
+    if (data.catalog_listing) {
+      const search = await mlFetch(`/products/search?status=active&q=${encodeURIComponent(data.title || mlbId)}&site_id=MLB&limit=1`);
+      const results = search.results || [];
+      if (results[0]?.id) return results[0].id;
+    }
+
+    // 3. Tenta buscar pelo próprio MLB no endpoint de produto
+    // Alguns anúncios catálogo retornam catalog_listing=false mas têm catalog_product_id
+    try {
+      const prod = await mlFetch(`/products/search?site_id=MLB&q=${encodeURIComponent(mlbId)}&limit=1`);
+      if (prod.results?.[0]?.id) return prod.results[0].id;
+    } catch(e) { /* silencioso */ }
+
+    return null;
+  } catch(e) { return null; }
+}
+
+// Busca catalog_product_id usando o título do anúncio como fallback
+async function buscarCatalogIdPorTitulo(titulo, categoria) {
+  try {
+    const q = encodeURIComponent(titulo.substring(0, 60));
+    const data = await mlFetch(`/products/search?status=active&q=${q}&site_id=MLB&limit=3`);
+    const results = data.results || [];
+    if (results[0]?.id) return results[0].id;
+    return null;
+  } catch(e) { return null; }
+}
+
+// Busca sellers do catálogo e seus preços
+async function buscarConcorrentesCatalogo(catalogProductId) {
+  if (state.concorrentesCache[catalogProductId]) {
+    return state.concorrentesCache[catalogProductId];
+  }
+  try {
+    // Endpoint correto ML: busca o produto do catálogo com sellers e preços
+    // /products/{id} retorna buy_box_winner e structured_data com sellers
+    const [prodData, itemsData] = await Promise.all([
+      mlFetch(`/products/${catalogProductId}`),
+      mlFetch(`/products/${catalogProductId}/items?status=active&limit=20`),
+    ]);
+
+    // Tenta extrair sellers de múltiplas estruturas possíveis da API ML
+    let rawItems = [];
+
+    // Estrutura 1: /products/{id}/items — results com buy_box_price ou prices
+    const resultsRaw = itemsData.results || itemsData.items || itemsData.content || [];
+    if (resultsRaw.length > 0) rawItems = resultsRaw;
+
+    // Estrutura 2: /products/{id} — children_items com prices
+    if (rawItems.length === 0 && prodData.children_items) {
+      rawItems = prodData.children_items;
+    }
+
+    // Normaliza cada item extraindo preço de todos os campos possíveis
+    const normalizarItem = item => {
+      // API ML /products/{id}/items retorna: item_id, price, seller_id
+      const preco = parseFloat(
+        item.price ||
+        item.buy_box_price ||
+        item.sale_price ||
+        item.original_price ||
+        item.prices?.amount ||
+        item.prices?.[0]?.amount ||
+        0
+      );
+      const seller_id = String(
+        item.seller_id ||
+        item.seller?.id ||
+        item.owner_id ||
+        ''
+      );
+      return {
+        preco,
+        seller_id,
+        mlb: item.item_id || item.id || '',
+        condicao: item.condition === 'new' ? 'Novo' : 'Usado',
+        listing_type: item.listing_type_id || '',
+      };
+    };
+
+    let concorrentes = rawItems
+      .map(normalizarItem)
+      .filter(i => i.preco > 0)
+      .sort((a, b) => a.preco - b.preco)
+      .slice(0, 5)
+      .map((c, idx) => ({ ...c, pos: idx + 1 }));
+
+    // Fallback: se não veio preço, busca cada item individualmente
+    if (concorrentes.length === 0 && resultsRaw.length > 0) {
+      const mlbs = resultsRaw.slice(0, 5).map(i => i.id || i.item_id).filter(Boolean);
+      if (mlbs.length > 0) {
+        try {
+          const detalhes = await mlFetch(`/items?ids=${mlbs.join(',')}&attributes=id,price,seller_id,condition`);
+          const detArr = Array.isArray(detalhes) ? detalhes : (detalhes.body || []);
+          concorrentes = detArr
+            .map(d => {
+              const item = d.body || d;
+              return {
+                preco: parseFloat(item.price || 0),
+                seller_id: String(item.seller_id || ''),
+                mlb: item.id || '',
+                condicao: item.condition === 'new' ? 'Novo' : 'Usado',
+              };
+            })
+            .filter(i => i.preco > 0)
+            .sort((a, b) => a.preco - b.preco)
+            .slice(0, 5)
+            .map((c, idx) => ({ ...c, pos: idx + 1 }));
+        } catch(e) { /* silencioso */ }
+      }
+    }
+
+    state.concorrentesCache[catalogProductId] = concorrentes;
+    return concorrentes;
+  } catch(e) { return null; }
+}
+
+// Detecta MLB de um produto via ANYMARKET
+function detectarMLB(p) {
+  // Tenta extrair da estrutura do produto
+  if (p.mlbId) return p.mlbId;
+  return null;
+}
+
+async function fetchTodas(endpoint) {
+  const todas=[]; let offset=0;
+  while(true) {
+    const data = await apiFetch(`${endpoint}?limit=100&offset=${offset}`);
+    const itens = data.content||[];
+    todas.push(...itens);
+    if(itens.length<100) break;
+    offset+=100; await delay(300);
+  }
+  return todas;
+}
+
+async function buscarComFiltro(filtro) {
+  const todos=[]; let offset=0, pagina=0;
+  while(pagina<CONFIG.MAX_PAGINAS) {
+    const data = await apiFetch(`/products?limit=${CONFIG.PAGE_SIZE}&offset=${offset}&${filtro}`);
+    const itens = data.content||[];
+    if(!itens.length) break;
+    todos.push(...itens);
+    if(itens.length<CONFIG.PAGE_SIZE) break;
+    offset+=CONFIG.PAGE_SIZE; pagina++;
+    await delay(CONFIG.DELAY_MS);
+  }
+  return todos;
+}
+
+// ── NORMALIZAÇÃO ──
+function normalizarProduto(p) {
+  const marca = p.brand?.name||(typeof p.brand==='string'?p.brand:'—');
+  const categoria = p.category?.path||p.category?.name||'—';
+  const sku = p.skus?.[0]?.partnerId||p.skuId||String(p.id)||'—';
+  const skuApiId = p.skus?.[0]?.id||null;
+  const preco = parseFloat(p.skus?.[0]?.price??p.price??0);
+  const estoque = parseInt(p.skus?.[0]?.amount??p.stockQuantity??0);
+
+  // Detecta MLB dos canais/marketplaces — tenta todos os campos possíveis
+  let mlbId = null;
+  const isML = v => v && (String(v).toLowerCase().includes('mercado') || String(v).toLowerCase() === 'mercado_livre' || String(v).toLowerCase().includes('meli'));
+  const extrairMLB = obj => {
+    const candidatos = [
+      obj?.externalId, obj?.adId, obj?.itemId, obj?.publicationId,
+      obj?.channelItemId, obj?.fields?.item_id, obj?.fields?.id,
+      obj?.fields?.external_id, obj?.sku?.externalId,
+    ];
+    for (const c of candidatos) {
+      if (!c) continue;
+      const s = String(c);
+      if (s.toUpperCase().startsWith('MLB')) return s;
+      if (/^\d{8,}$/.test(s)) return 'MLB' + s;
+    }
+    return null;
+  };
+  if (Array.isArray(p.channels)) {
+    const mlCh = p.channels.find(c => isML(c.channelName) && c.status === 'ACTIVE');
+    if (mlCh) mlbId = extrairMLB(mlCh);
+  }
+  if (!mlbId && Array.isArray(p.marketplaces)) {
+    const mlMk = p.marketplaces.find(m => isML(m.name) && m.active);
+    if (mlMk) mlbId = extrairMLB(mlMk);
+  }
+  if (!mlbId && Array.isArray(p.skus)) {
+    for (const sku of p.skus) {
+      if (Array.isArray(sku.channels)) {
+        const mlCh = sku.channels.find(c => isML(c.channelName) && c.status === 'ACTIVE');
+        if (mlCh) { mlbId = extrairMLB(mlCh); if (mlbId) break; }
+      }
+    }
+  }
+
+  return {sku, skuApiId, nome:p.title||p.name||'—', marca, categoria,
+    marcaId:String(p.brand?.id||''), catId:String(p.category?.id||''),
+    preco, estoque, valor:preco*estoque,
+    precoClassico:null, precoPremium:null, loadingML:false,
+    precoClassicoML:null, precoPremiumML:null, precoClassicoOrig:null, precoPremiumOrig:null,
+    anuncioML:detectarAnuncioML(p),
+    mlbId: mlbId,
+    catalogProductId: null,
+    concorrentes: null,
+    concorrentesLoading: false,
+    minhaPosicao: null,
+  };
+}
+
+function detectarAnuncioML(p) {
+  if(Array.isArray(p.channels)) return p.channels.some(c=>(c.channelName||'').toLowerCase().includes('mercado')&&c.status==='ACTIVE');
+  if(Array.isArray(p.marketplaces)) return p.marketplaces.some(m=>(m.name||'').toLowerCase().includes('mercado')&&m.active);
+  return null;
+}
+
+// ── BUSCA CONCORRENTES EM BACKGROUND ──
+async function buscarConcorrentesBackground(produtos) {
+  if (!mlTokenValido()) return;
+
+  const comAnuncio = produtos.filter(p => p.mlbId && !p.concorrentes);
+  if (!comAnuncio.length) return;
+
+  for (const p of comAnuncio) {
+    if (!mlTokenValido()) break;
+    try {
+      p.concorrentesLoading = true;
+      aplicarFiltros(); // re-render para mostrar loading
+
+      // 1. Busca catalog_product_id pelo MLB
+      if (!p.catalogProductId) {
+        p.catalogProductId = await buscarCatalogId(p.mlbId);
+      }
+
+      // Fallback 1: tenta com MLB alternativo (ex: clássico vs premium)
+      if (!p.catalogProductId && p.mlbIdAlt) {
+        p.catalogProductId = await buscarCatalogId(p.mlbIdAlt);
+      }
+
+      // Fallback 2: tenta pelo título do produto
+      if (!p.catalogProductId && p.nome && p.nome !== '—') {
+        p.catalogProductId = await buscarCatalogIdPorTitulo(p.nome);
+      }
+
+      if (!p.catalogProductId) {
+        p.concorrentes = 'fora_catalogo';
+        p.concorrentesLoading = false;
+        aplicarFiltros();
+        continue;
+      }
+
+      // 2. Busca concorrentes do catálogo
+      const concs = await buscarConcorrentesCatalogo(p.catalogProductId);
+      if (!concs) {
+        p.concorrentes = 'erro';
+        p.concorrentesLoading = false;
+        aplicarFiltros();
+        continue;
+      }
+
+      // 3. Identifica posição do seller
+      const meuSellerId = state.mlSellerId;
+      let minhaPos = null;
+      concs.forEach((c, i) => {
+        if (meuSellerId && c.seller_id === meuSellerId) minhaPos = i + 1;
+      });
+      p.minhaPosicao = minhaPos;
+      p.concorrentes = concs;
+      p.concorrentesLoading = false;
+
+    } catch(e) {
+      // Tenta uma vez mais antes de marcar como erro
+      try {
+        await delay(1000);
+        if (p.catalogProductId) {
+          const retry = await buscarConcorrentesCatalogo(p.catalogProductId);
+          p.concorrentes = retry || 'erro';
+        } else {
+          p.concorrentes = 'erro';
+        }
+      } catch(e2) {
+        p.concorrentes = 'erro';
+      }
+      p.concorrentesLoading = false;
+    }
+
+    aplicarFiltros();
+    await delay(500);
+  }
+}
+
+// ── RENDERIZAÇÃO DA COLUNA CONCORRENTES ──
+function renderColunaConc(p) {
+  // ML não conectado
+  if (!mlTokenValido()) {
+    return `<td class="concorrentes-cell" onclick="abrirAuthML()">
+      <div class="concorrentes-preview">
+        <span class="conc-badge none">Conectar ML</span>
+      </div>
+    </td>`;
+  }
+
+  // Sem MLB conhecido
+  if (!p.mlbId) {
+    return `<td><span style="color:var(--text3);font-size:11px">Sem MLB</span></td>`;
+  }
+
+  // Carregando
+  if (p.concorrentesLoading || p.concorrentes === null) {
+    return `<td><div class="conc-loading"><div class="conc-spinner"></div>buscando...</div></td>`;
+  }
+
+  // Fora do catálogo
+  if (p.concorrentes === 'fora_catalogo') {
+    return `<td><span class="conc-badge none">Fora do catálogo</span></td>`;
+  }
+
+  // Erro — clicável para tentar novamente
+  if (p.concorrentes === 'erro') {
+    return `<td><span style="color:var(--red);font-size:11px;cursor:pointer" onclick="tentarNovamente('${p.mlbId || ''}','${esc(p.nome)}')">Erro ↻</span></td>`;
+  }
+
+  // Sem concorrentes encontrados
+  if (!p.concorrentes || !p.concorrentes.length) {
+    return `<td><span class="conc-badge none">Sem dados</span></td>`;
+  }
+
+  // Calcula diferença vs melhor preço do catálogo
+  const melhor = p.concorrentes[0];
+  // FIX: usa menor preço ML publicado (Clássico ou Premium) como base de comparação
+  // Se ainda não carregou os preços ML, usa p.preco como fallback
+  const _menorML = Math.min(
+    p.precoClassico || Infinity,
+    p.precoPremium  || Infinity
+  );
+  const meuPreco = isFinite(_menorML) ? _menorML : p.preco;
+  const diff = meuPreco > 0 ? ((meuPreco - melhor.preco) / melhor.preco * 100) : 0;
+  const badgeCls = diff <= 0 ? 'ok' : diff <= 10 ? 'warn' : 'danger';
+  const diffTxt = diff <= 0 ? `✅ ${Math.abs(diff).toFixed(0)}% abaixo` : diff <= 10 ? `⚠️ +${diff.toFixed(0)}%` : `🔴 +${diff.toFixed(0)}%`;
+  const posTxt = p.minhaPosicao ? ` · ${p.minhaPosicao}º lugar` : '';
+
+  return `<td class="concorrentes-cell" onclick="abrirModalConc('${p.mlbId}','${esc(p.nome)}')">
+    <div class="concorrentes-preview">
+      <div>
+        <div class="conc-preco">${fmtBRL(melhor.preco)}</div>
+        <div class="conc-hint">${posTxt}</div>
+      </div>
+      <span class="conc-badge ${badgeCls}">${diffTxt}</span>
+    </div>
+  </td>`;
+}
+
+// ── BUSCA NICKNAMES DOS SELLERS ──
+const nicknameCache = {};
+async function buscarNicknames(sellerIds) {
+  const semCache = sellerIds.filter(id => id && !nicknameCache[id]);
+  if (semCache.length > 0) {
+    try {
+      // Busca em lote via /users?ids=
+      const ids = semCache.slice(0, 10).join(',');
+      const data = await mlFetch(`/users?ids=${ids}`);
+      const arr = Array.isArray(data) ? data : (data.results || []);
+      // API ML pode retornar array direto ou array com body/code por item
+      arr.forEach(u => {
+        const item = u.body || u;
+        const id = String(item.id || u.id || '');
+        if (id) {
+          const nome = item.nickname || item.name || item.first_name || '';
+          nicknameCache[id] = nome.trim() || `#${id}`;
+        }
+      });
+    } catch(e) {
+      // Fallback: busca individual silencioso
+      for (const id of semCache.slice(0, 5)) {
+        try {
+          const u = await mlFetch(`/users/${id}?attributes=id,nickname,name`);
+          const nome = u.nickname || u.name || u.first_name || '';
+          nicknameCache[id] = nome.trim() || `#${id}`;
+        } catch(e2) { nicknameCache[id] = `#${id}`; }
+      }
+    }
+    // Garante que todos os não encontrados têm fallback
+    semCache.forEach(id => { if (!nicknameCache[id]) nicknameCache[id] = `#${id}`; });
+  }
+}
+
+// ── MODAL CONCORRENTES ──
+async function abrirModalConc(mlbId, nomeProduto) {
+  if (!mlTokenValido()) { abrirAuthML(); return; }
+
+  const modal = document.getElementById('modal-concorrentes');
+  const body = document.getElementById('modal-body-content');
+  document.getElementById('modal-produto-nome').textContent = nomeProduto;
+  document.getElementById('modal-catalog-id').textContent = 'Buscando catálogo...';
+  document.getElementById('modal-ml-link').href = '#';
+  body.innerHTML = '<div class="modal-loading"><div class="modal-spinner"></div>Buscando concorrentes...</div>';
+  modal.classList.add('open');
+
+  try {
+    const prod = state.produtos.find(p => p.mlbId === mlbId || p.mlbIdAlt === mlbId);
+
+    // Busca catalogProductId — tenta mlbId e mlbIdAlt
+    let catalogId = prod?.catalogProductId;
+    if (!catalogId) catalogId = await buscarCatalogId(mlbId);
+    if (!catalogId && prod?.mlbIdAlt) catalogId = await buscarCatalogId(prod.mlbIdAlt);
+    if (!catalogId && prod?.nome) catalogId = await buscarCatalogIdPorTitulo(prod.nome);
+
+    if (!catalogId) {
+      document.getElementById('modal-catalog-id').textContent = 'Sem catálogo ML identificado';
+      body.innerHTML = `<div class="modal-error">Não foi possível identificar o catálogo ML para este produto.<br><br>Verifique se o anúncio está ativo e do tipo Catálogo no ANYMARKET.</div>`;
+      return;
+    }
+
+    document.getElementById('modal-catalog-id').textContent = `Catálogo: ${catalogId}`;
+    document.getElementById('modal-ml-link').href = `https://www.mercadolivre.com.br/p/${catalogId}`;
+
+    const concs = await buscarConcorrentesCatalogo(catalogId);
+    if (!concs || !concs.length) {
+      body.innerHTML = `<div class="modal-error">Nenhum seller encontrado neste catálogo.</div>`;
+      return;
+    }
+
+    // Busca nicknames de todos os sellers
+    await buscarNicknames(concs.map(c => c.seller_id));
+
+    // Identificação do "Você" — compara seller_id em string e número
+    const meuSellerId = String(state.mlSellerId || '').trim();
+    const meuPreco = prod?.preco || 0;
+    let minhaPos = null;
+    let euEstouNaLista = false;
+
+    concs.forEach((c, i) => {
+      const sid = String(c.seller_id || '').trim();
+      if (meuSellerId && (sid === meuSellerId || sid === meuSellerId.replace(/\D/g,''))) {
+        minhaPos = i + 1;
+        euEstouNaLista = true;
+        c._isMe = true;
+      }
+    });
+
+    // Card de resumo: seu preço | posição | diff vs 1º
+    const melhorPreco = concs[0]?.preco || 0;
+    // FIX: usa menor preço ML publicado (Clássico ou Premium) como base
+    const _menorML = Math.min(prod?.precoClassico || Infinity, prod?.precoPremium || Infinity);
+    const meuPrecoModal = isFinite(_menorML) ? _menorML : (prod?.preco || 0);
+    const diffVs1 = meuPrecoModal > 0 && melhorPreco > 0 ? ((meuPrecoModal - melhorPreco) / melhorPreco * 100) : null;
+    const diffVs1Cls = diffVs1 === null ? 'blue' : diffVs1 <= 0 ? 'green' : diffVs1 <= 10 ? 'amber' : 'red';
+    const diffVs1Txt = diffVs1 === null ? '—' : diffVs1 <= 0 ? `▼ ${Math.abs(diffVs1).toFixed(1)}%` : `▲ ${diffVs1.toFixed(1)}%`;
+    const posTxt = minhaPos ? `${minhaPos}º de ${concs.length}` : euEstouNaLista ? '—' : `> ${concs.length}`;
+
+    const summaryHtml = `
+      <div class="modal-summary">
+        <div class="modal-summary-cell">
+          <div class="modal-summary-label">Seu preço</div>
+          <div class="modal-summary-val blue">${meuPrecoModal > 0 ? fmtBRL(meuPrecoModal) : '—'}</div>
+          <div class="modal-summary-sub">anunciado</div>
+        </div>
+        <div class="modal-summary-cell">
+          <div class="modal-summary-label">Posição</div>
+          <div class="modal-summary-val ${minhaPos === 1 ? 'green' : minhaPos ? 'amber' : 'red'}">${posTxt}</div>
+          <div class="modal-summary-sub">no catálogo</div>
+        </div>
+        <div class="modal-summary-cell">
+          <div class="modal-summary-label">vs 1º lugar</div>
+          <div class="modal-summary-val ${diffVs1Cls}">${diffVs1Txt}</div>
+          <div class="modal-summary-sub">${melhorPreco > 0 ? fmtBRL(melhorPreco) : '—'}</div>
+        </div>
+      </div>`;
+
+    // Linhas da tabela
+    let rows = concs.map((c, i) => {
+      const pos = i + 1;
+      const posBadgeCls = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-n';
+      const isMe = !!c._isMe;
+      const diffPct = meuPrecoModal > 0 && c.preco > 0 ? ((meuPrecoModal - c.preco) / c.preco * 100) : null;
+      const diffHtml = diffPct !== null
+        ? `<span class="${diffPct < -0.1 ? 'diff-pos' : diffPct > 0.1 ? 'diff-neg' : 'diff-zero'}">${fmtPct(-diffPct)}</span>`
+        : '<span class="diff-zero">—</span>';
+      const precoHtml = c.preco > 0 ? fmtBRL(c.preco) : '—';
+      const nickname = nicknameCache[String(c.seller_id)] || `#${c.seller_id}`;
+      const sellerHtml = isMe
+        ? `<span style="color:var(--accent);font-weight:700">🏪 Você</span>`
+        : `<span class="seller-name" title="${esc(nickname)}">${esc(nickname)}</span>`;
+
+      return `<tr class="${isMe ? 'my-row' : ''}">
+        <td><span class="pos-badge ${posBadgeCls}">${pos}</span></td>
+        <td>${sellerHtml}</td>
+        <td class="right" style="font-weight:${isMe?'700':'400'}">${isMe ? (meuPrecoModal > 0 ? fmtBRL(meuPrecoModal) : precoHtml) : precoHtml}</td>
+        <td class="right">${diffHtml}</td>
+      </tr>`;
+    }).join('');
+
+    // Linha "Você" separada se não estiver no top 5
+    if (!euEstouNaLista && meuPrecoModal > 0) {
+      rows += `<tr class="my-row-sep">
+        <td><span class="pos-badge pos-n">?</span></td>
+        <td><span style="color:var(--accent);font-weight:700">🏪 Você</span></td>
+        <td class="right" style="font-weight:700">${fmtBRL(meuPrecoModal)}</td>
+        <td class="right">${diffVs1 !== null ? `<span class="${diffVs1 > 0.1 ? 'diff-neg' : 'diff-pos'}">${fmtPct(-diffVs1)}</span>` : '—'}</td>
+      </tr>`;
+    }
+
+    body.innerHTML = `
+      ${summaryHtml}
+      <table class="modal-table">
+        <colgroup>
+          <col class="c-pos"><col class="c-seller"><col class="c-price"><col class="c-diff">
+        </colgroup>
+        <thead><tr>
+          <th>#</th>
+          <th>Vendedor</th>
+          <th class="right">Preço</th>
+          <th class="right">vs você</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    if (prod) {
+      prod.catalogProductId = catalogId;
+      prod.concorrentes = concs;
+      prod.minhaPosicao = minhaPos;
+    }
+
+  } catch(e) {
+    body.innerHTML = `<div class="modal-error">Erro ao buscar concorrentes: ${e.message}</div>`;
+  }
+}
+
+function fecharModal() {
+  document.getElementById('modal-concorrentes').classList.remove('open');
+}
+
+async function tentarNovamente(mlbId, nomeProduto) {
+  // Reseta o produto e tenta buscar novamente
+  const prod = state.produtos.find(p => p.mlbId === mlbId || p.mlbIdAlt === mlbId);
+  if (prod) {
+    prod.concorrentes = null;
+    prod.catalogProductId = null;
+    prod.concorrentesLoading = false;
+    delete state.concorrentesCache[prod.catalogProductId];
+  }
+  if (mlbId) {
+    await abrirModalConc(mlbId, nomeProduto);
+  }
+}
+
+function fecharModalSe(e) {
+  if (e.target === document.getElementById('modal-concorrentes')) fecharModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModal(); });
+
+// ── STEPS ──
+async function carregarCategorias() {
+  const token = document.getElementById('token-input').value.trim();
+  if(!token){alert('Informe o token de acesso.');return;}
+  state.token = token;
+  localStorage.setItem(CONFIG.KEY_TOKEN, token);
+  carregarChamadas();
+  setLoading('load-indicator', true, 'Carregando categorias...');
+  document.getElementById('btn-avancar').disabled = true;
+  try {
+    const catMap = new Map();
+    const catsBruto = await fetchTodas('/categories');
+    catsBruto.filter(c=>(c.totalProducts||0)>0).forEach(c=>{
+      catMap.set(String(c.id),{id:c.id,name:c.name,path:c.path||c.name,totalProducts:c.totalProducts||0});
+    });
+    setLoading('load-indicator', true, 'Mapeando subcategorias...');
+    let offset=0;
+    while(offset<500) {
+      const data = await apiFetch(`/products?limit=100&offset=${offset}`);
+      const itens = data.content||[];
+      if(!itens.length) break;
+      itens.forEach(p=>{
+        if(p.category?.id){
+          const key=String(p.category.id);
+          if(!catMap.has(key)) catMap.set(key,{id:p.category.id,name:p.category.name||p.category.path,path:p.category.path||p.category.name,totalProducts:0});
+          catMap.get(key).totalProducts++;
+        }
+      });
+      if(itens.length<100) break;
+      offset+=100; await delay(400);
+    }
+    state.categoriasDisponiveis = [...catMap.values()].filter(c=>c.totalProducts>0).sort((a,b)=>(a.path||a.name).localeCompare(b.path||b.name));
+    const salvo = JSON.parse(localStorage.getItem(CONFIG.KEY_SELECAO)||'{}');
+    state.categoriasSelecionadas = salvo.categorias
+      ? state.categoriasDisponiveis.filter(c=>salvo.categorias.includes(String(c.id))).map(c=>({id:String(c.id),name:c.name,path:c.path||c.name}))
+      : [];
+    renderizarListaCats(''); renderizarChipsCats(); atualizarBotaoCats();
+    irParaStep('step-categorias');
+  } catch(e) { mostrarErroSetup(e.message); }
+  finally { setLoading('load-indicator', false); document.getElementById('btn-avancar').disabled = false; }
+}
+
+function renderizarListaCats(filtro) {
+  const el = document.getElementById('lista-cats');
+  const term = filtro.toLowerCase().trim();
+  const lista = state.categoriasDisponiveis.filter(c=>!term||(c.path||c.name).toLowerCase().includes(term));
+  if(!lista.length){el.innerHTML='<div class="sel-empty">Nenhuma categoria encontrada</div>';return;}
+  el.innerHTML = lista.map(c=>{
+    const chk = state.categoriasSelecionadas.some(s=>String(s.id)===String(c.id))?'checked':'';
+    const path = c.path||c.name; const partes = path.split('/');
+    const nome = partes.pop().trim(); const pai = partes.map(p=>p.trim()).join(' / ');
+    return `<label class="sel-item"><input type="checkbox" data-id="${c.id}" data-name="${esc(c.name)}" data-path="${esc(path)}" ${chk} onchange="toggleCat(this)"><span class="sel-item-name">${pai?`<span class="sel-path">${bold(esc(pai),term)}</span>`:''} ${bold(esc(nome),term)}</span><span class="sel-item-count">${c.totalProducts||''}</span></label>`;
+  }).join('');
+}
+
+function filtrarCats(){renderizarListaCats(document.getElementById('search-cats').value);}
+function toggleCat(cb) {
+  const id=String(cb.dataset.id), name=cb.dataset.name, path=cb.dataset.path||name;
+  if(cb.checked) state.categoriasSelecionadas.push({id,name,path});
+  else state.categoriasSelecionadas = state.categoriasSelecionadas.filter(s=>s.id!==id);
+  renderizarChipsCats(); atualizarBotaoCats();
+}
+function renderizarChipsCats() {
+  const el=document.getElementById('chips-cats'), info=document.getElementById('info-cats');
+  el.innerHTML = state.categoriasSelecionadas.map(c=>`<span class="chip"><span class="chip-label">${esc(c.path||c.name)}</span><span class="chip-x" onclick="removerCat('${c.id}')">×</span></span>`).join('');
+  const n = state.categoriasSelecionadas.length;
+  if(n===0){info.textContent='Selecione ao menos uma categoria para continuar.';info.className='sel-info';}
+  else{info.textContent=`${n} categoria(s) selecionada(s).`;info.className='sel-info ok';}
+}
+function removerCat(id) {
+  state.categoriasSelecionadas = state.categoriasSelecionadas.filter(s=>s.id!==id);
+  const cb = document.querySelector(`#lista-cats [data-id="${id}"]`);
+  if(cb) cb.checked=false;
+  renderizarChipsCats(); atualizarBotaoCats();
+}
+function atualizarBotaoCats() { document.getElementById('btn-avancar-marcas').disabled = state.categoriasSelecionadas.length===0; }
+function toggleTodosCats() {
+  const term=document.getElementById('search-cats').value.toLowerCase().trim();
+  const vis=state.categoriasDisponiveis.filter(c=>!term||(c.path||c.name).toLowerCase().includes(term));
+  const all=vis.every(c=>state.categoriasSelecionadas.some(s=>s.id===String(c.id)));
+  if(all) state.categoriasSelecionadas=state.categoriasSelecionadas.filter(s=>!vis.some(c=>String(c.id)===s.id));
+  else vis.forEach(c=>{if(!state.categoriasSelecionadas.some(s=>s.id===String(c.id))) state.categoriasSelecionadas.push({id:String(c.id),name:c.name,path:c.path||c.name});});
+  renderizarListaCats(term); renderizarChipsCats(); atualizarBotaoCats();
+}
+
+async function carregarMarcasDasCategorias() {
+  irParaStep('step-marcas');
+  setLoading('load-marcas', true, 'Buscando marcas disponíveis...');
+  document.getElementById('btn-buscar').disabled = true;
+  try {
+    const marcaMap = new Map();
+    for(const cat of state.categoriasSelecionadas) {
+      setLoading('load-marcas', true, `Carregando ${cat.name}...`);
+      const prods = await buscarComFiltro(`categoryId=${cat.id}`);
+      prods.forEach(p=>{ if(p.brand?.id) { const key=String(p.brand.id); if(!marcaMap.has(key)) marcaMap.set(key,{id:p.brand.id,name:p.brand.name||'—',count:0}); marcaMap.get(key).count++; } });
+    }
+    state.marcasDisponiveis = [...marcaMap.values()].sort((a,b)=>a.name.localeCompare(b.name));
+    const salvo = JSON.parse(localStorage.getItem(CONFIG.KEY_SELECAO)||'{}');
+    state.marcasSelecionadas = salvo.marcas && salvo.marcas.length > 0
+      ? state.marcasDisponiveis.filter(m=>salvo.marcas.includes(String(m.id))).map(m=>({id:String(m.id),name:m.name}))
+      : state.marcasDisponiveis.map(m=>({id:String(m.id),name:m.name}));
+    renderizarListaMarcas(''); renderizarChipsMarcas();
+  } catch(e) { mostrarErroSetup(e.message); voltarStep('step-categorias'); }
+  finally { setLoading('load-marcas', false); document.getElementById('btn-buscar').disabled = false; }
+}
+
+function renderizarListaMarcas(filtro) {
+  const el = document.getElementById('lista-marcas');
+  const term = filtro.toLowerCase().trim();
+  const lista = state.marcasDisponiveis.filter(m=>!term||m.name.toLowerCase().includes(term));
+  if(!lista.length){el.innerHTML='<div class="sel-empty">Nenhuma marca encontrada</div>';return;}
+  el.innerHTML = lista.map(m=>{ const chk = state.marcasSelecionadas.some(s=>String(s.id)===String(m.id))?'checked':''; return `<label class="sel-item"><input type="checkbox" data-id="${m.id}" data-name="${esc(m.name)}" ${chk} onchange="toggleMarca(this)"><span class="sel-item-name">${bold(esc(m.name),term)}</span><span class="sel-item-count">${m.count} prod.</span></label>`; }).join('');
+}
+function filtrarMarcas(){renderizarListaMarcas(document.getElementById('search-marcas').value);}
+function toggleMarca(cb) { const id=String(cb.dataset.id),name=cb.dataset.name; if(cb.checked) state.marcasSelecionadas.push({id,name}); else state.marcasSelecionadas=state.marcasSelecionadas.filter(s=>s.id!==id); renderizarChipsMarcas(); }
+function renderizarChipsMarcas() {
+  const el=document.getElementById('chips-marcas'),info=document.getElementById('info-marcas');
+  el.innerHTML=state.marcasSelecionadas.map(m=>`<span class="chip"><span class="chip-label">${esc(m.name)}</span><span class="chip-x" onclick="removerMarca('${m.id}')">×</span></span>`).join('');
+  const n=state.marcasSelecionadas.length,total=state.marcasDisponiveis.length;
+  info.textContent=n===total?'Todas as marcas selecionadas.':`${n} de ${total} marcas selecionadas.`;
+  info.className=n>0?'sel-info ok':'sel-info';
+  document.getElementById('btn-buscar').disabled=n===0;
+}
+function removerMarca(id) { state.marcasSelecionadas=state.marcasSelecionadas.filter(s=>s.id!==id); const cb=document.querySelector(`#lista-marcas [data-id="${id}"]`); if(cb) cb.checked=false; renderizarChipsMarcas(); }
+function toggleTodosMarcas() {
+  const term=document.getElementById('search-marcas').value.toLowerCase().trim();
+  const vis=state.marcasDisponiveis.filter(m=>!term||m.name.toLowerCase().includes(term));
+  const all=vis.every(m=>state.marcasSelecionadas.some(s=>s.id===String(m.id)));
+  if(all) state.marcasSelecionadas=state.marcasSelecionadas.filter(s=>!vis.some(m=>String(m.id)===s.id));
+  else vis.forEach(m=>{if(!state.marcasSelecionadas.some(s=>s.id===String(m.id))) state.marcasSelecionadas.push({id:String(m.id),name:m.name});});
+  renderizarListaMarcas(term); renderizarChipsMarcas();
+}
+
+async function iniciarBusca() {
+  if(state.carregando) return;
+  state.carregando=true;
+  document.getElementById('btn-buscar').disabled=true;
+  document.getElementById('btn-buscar').textContent='Buscando...';
+  localStorage.setItem(CONFIG.KEY_SELECAO,JSON.stringify({categorias:state.categoriasSelecionadas.map(c=>c.id),marcas:state.marcasSelecionadas.map(m=>m.id)}));
+  try {
+    const todos=[],ids=new Set();
+    const marcasIds=new Set(state.marcasSelecionadas.map(m=>String(m.id)));
+    for(const cat of state.categoriasSelecionadas) {
+      const prods=await buscarComFiltro(`categoryId=${cat.id}`);
+      prods.forEach(p=>{ if(!ids.has(p.id)){ const brandId=String(p.brand?.id||''); if(marcasIds.size===0||marcasIds.has(brandId)){todos.push(p);ids.add(p.id);} } });
+    }
+    await iniciarApp(todos.map(normalizarProduto),false);
+  } catch(e) { mostrarErroSetup(e.message); document.getElementById('btn-buscar').disabled=false; document.getElementById('btn-buscar').textContent='Buscar produtos'; }
+  state.carregando=false;
+}
+
+// ── DEMO ──
+function gerarDadosDemo() {
+  return [
+    {sku:'PCY-RTX4070S',nome:'RTX 4070 Super 12GB',marca:'PCYES',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'1',catId:'10',preco:3089,estoque:42,valor:129738,anuncioML:true,mlbId:'MLB3590123456',catalogProductId:'MLB24381450',concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'PCY-RTX4080',nome:'RTX 4080 16GB OC',marca:'PCYES',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'1',catId:'10',preco:5299,estoque:17,valor:90083,anuncioML:true,mlbId:'MLB3590234567',catalogProductId:'MLB24381451',concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'PCY-RTX4090',nome:'RTX 4090 24GB Extreme',marca:'PCYES',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'1',catId:'10',preco:9890,estoque:5,valor:49450,anuncioML:false,mlbId:null,catalogProductId:null,concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'ASR-RX9070',nome:'RX 9070 XT 16GB Steel Legend',marca:'ASROCK',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'2',catId:'10',preco:7645,estoque:8,valor:61160,anuncioML:false,mlbId:null,catalogProductId:null,concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'ZTC-RTX5060',nome:'RTX 5060 Ti Twin Edge 8GB',marca:'ZOTAC',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'3',catId:'10',preco:3200,estoque:12,valor:38400,anuncioML:true,mlbId:'MLB3590345678',catalogProductId:'MLB24381452',concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'INO-RTX5060',nome:'RTX 5060 Ti 8GB Twin X2',marca:'INNO3D',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'4',catId:'10',preco:3410,estoque:699,valor:2383590,anuncioML:false,mlbId:null,catalogProductId:null,concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'PAL-RTX5060',nome:'RTX 5060 8GB Infinity 3',marca:'PALIT',categoria:'INFORMATICA/PLACAS DE VÍDEO',marcaId:'5',catId:'10',preco:3572,estoque:49,valor:175028,anuncioML:false,mlbId:null,catalogProductId:null,concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+    {sku:'PCY-RTX3070',nome:'RTX 3070 Gaming Pro 8GB',marca:'PCYES',categoria:'PLACAS DE VÍDEO',marcaId:'1',catId:'11',preco:3320,estoque:104,valor:345280,anuncioML:true,mlbId:'MLB3590456789',catalogProductId:'MLB24381453',concorrentes:null,minhaPosicao:null,concorrentesLoading:false},
+  ];
+}
+
+// ── FILTROS ──
+function popularFiltrosDash(produtos) {
+  const marcas=[...new Set(produtos.map(p=>p.marca).filter(Boolean).sort())];
+  const cats=[...new Set(produtos.map(p=>p.categoria).filter(Boolean).sort())];
+  const fm=document.getElementById('f-marca'),fc=document.getElementById('f-cat');
+  fm.innerHTML='<option value="">Todas</option>';
+  fc.innerHTML='<option value="">Todas</option>';
+  marcas.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;fm.appendChild(o);});
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fc.appendChild(o);});
+}
+function atualizarTicket(el){ document.getElementById('f-ticket-val').textContent='R$ '+Number(el.value).toLocaleString('pt-BR'); aplicarFiltros(); }
+function getFiltros(){ return{marca:document.getElementById('f-marca').value,cat:document.getElementById('f-cat').value,ticket:parseInt(document.getElementById('f-ticket').value),estoque:parseInt(document.getElementById('f-estoque').value)}; }
+function aplicarFiltros(){
+  const f=getFiltros();
+  state.filtrados=state.produtos.filter(p=>(!f.marca||p.marca===f.marca)&&(!f.cat||p.categoria===f.cat)&&p.preco>=f.ticket&&p.estoque>=f.estoque);
+  renderizar();
+}
+function limparFiltros(){
+  document.getElementById('f-marca').value='';document.getElementById('f-cat').value='';
+  document.getElementById('f-ticket').value=500;document.getElementById('f-ticket-val').textContent='R$ 500';
+  document.getElementById('f-estoque').value=5;aplicarFiltros();
+}
+
+// ── RENDERIZAÇÃO ──
+function renderizarFiltrosAtivos(){
+  const el=document.getElementById('active-filters');
+  const catChips=state.categoriasSelecionadas.map(c=>`<span class="af-chip">${esc(c.path||c.name)}</span>`);
+  const marcaChips=state.marcasSelecionadas.length===state.marcasDisponiveis.length?[]:state.marcasSelecionadas.map(m=>`<span class="af-chip marca">${esc(m.name)}</span>`);
+  const chips=[...catChips,...marcaChips];
+  if(!chips.length){el.style.display='none';return;}
+  el.style.display='flex';
+  el.innerHTML=`<span class="af-label">Filtros:</span>${chips.join('')}<span class="af-edit" onclick="editarSelecao()">editar</span>`;
+}
+
+async function buscarPrecosML(produtos) {
+  const LOTE=5;
+  for(let i=0;i<produtos.length;i+=LOTE){
+    const lote=produtos.slice(i,i+LOTE);
+    await Promise.all(lote.map(async p=>{
+      if(!p.skuApiId) return;
+      try {
+        const resp=await fetch(`${CONFIG.BASE_URL}/skus/${p.skuApiId}/marketplaces`,{headers:{'gumgaToken':state.token}});
+        registrarChamada(1);
+        if(!resp.ok) return;
+        const data=await resp.json();
+        const ml=Array.isArray(data)?data:(data.content||[]);
+        // Aceita ACTIVE e PAUSED — anúncios pausados ainda têm preço válido
+        const anunciosML=ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&(x.publicationStatus==='ACTIVE'||x.publicationStatus==='PAUSED'));
+        const classico=anunciosML.find(x=>x.fields?.listing_type_id==='gold_special');
+        const premium=anunciosML.find(x=>x.fields?.listing_type_id==='gold_pro');
+        const qualquer=anunciosML[0];
+        const getPreco=x=>{if(!x) return null;const s=parseFloat(x.fields?.marketplace_sale_price);return(s&&!isNaN(s))?s:(x.discountPrice||x.price||null);};
+        p.precoClassico=getPreco(classico);
+        p.precoPremium=getPreco(premium)||getPreco(qualquer);
+        // ACTIVE = anunciado, PAUSED = pausado, ausente = sem anúncio
+        const ativosML = ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&x.publicationStatus==='ACTIVE');
+        const pausadosML = ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&x.publicationStatus==='PAUSED');
+        p.anuncioML = ativosML.length>0 ? true : pausadosML.length>0 ? 'paused' : (ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length>0 ? false : null);
+
+        // Busca preço real do ML via API (captura promoções, campanhas etc.)
+        if (state.mlToken && mlTokenValido()) {
+          // Coleta mlbIds de Clássico e Premium
+          const mlbClassico = classico ? (
+            classico.idInMarketplace ||
+            classico.fields?.item_id ||
+            classico.externalId || null
+          ) : null;
+          const mlbPremium = premium ? (
+            premium.idInMarketplace ||
+            premium.fields?.item_id ||
+            premium.externalId || null
+          ) : null;
+
+          const buscarPrecoItemML = async (mlbId) => {
+            if (!mlbId) return null;
+            try {
+              const r = await fetch(
+                `https://api.mercadolibre.com/items/${mlbId}?attributes=price,original_price,sale_price`,
+                { headers: { 'Authorization': 'Bearer ' + state.mlToken } }
+              );
+              if (!r.ok) return null;
+              const d = await r.json();
+              // sale_price na API ML é número direto (não objeto)
+              const precoFinal = parseFloat(d.sale_price || d.price || 0);
+              const precoOriginal = parseFloat(d.original_price || d.price || 0);
+              return {
+                preco: precoFinal,
+                original: precoOriginal,
+                emPromocao: d.sale_price != null && precoFinal < precoOriginal,
+              };
+            } catch(e) { return null; }
+          };
+
+          const [dadosClassico, dadosPremium] = await Promise.all([
+            buscarPrecoItemML(mlbClassico),
+            buscarPrecoItemML(mlbPremium),
+          ]);
+
+          if (dadosClassico) {
+            p.precoClassicoML = dadosClassico.preco;
+            p.precoClassicoOrig = dadosClassico.emPromocao ? dadosClassico.original : null;
+          }
+          if (dadosPremium) {
+            p.precoPremiumML = dadosPremium.preco;
+            p.precoPremiumOrig = dadosPremium.emPromocao ? dadosPremium.original : null;
+          }
+
+          // Atualiza preços com valores reais do ML
+          if (p.precoClassicoML) p.precoClassico = p.precoClassicoML;
+          if (p.precoPremiumML)  p.precoPremium  = p.precoPremiumML;
+          // Se não tem clássico mas tem premium, usa premium como base de preço clássico
+          // (produto só tem gold_pro cadastrado)
+          if (!p.precoClassico && p.precoPremiumML) {
+            p.precoClassico = null; // mantém null — não exibe linha Clássico inexistente
+          }
+        }
+
+        // Extrai MLB do retorno — prefere Premium (gold_pro) sobre Clássico (gold_special)
+        // pois anúncios Premium têm catalog_product_id mais consistente na API ML
+        if (!p.mlbId && anunciosML.length > 0) {
+          const anuncioPremium = anunciosML.find(x => x.fields?.listing_type_id === 'gold_pro');
+          const anuncio = anuncioPremium || anunciosML[0];
+          const candidato =
+            anuncio.externalId ||
+            anuncio.adId ||
+            anuncio.itemId ||
+            anuncio.publicationId ||
+            anuncio.channelItemId ||
+            anuncio.fields?.item_id ||
+            anuncio.fields?.id ||
+            anuncio.fields?.external_id ||
+            anuncio.sku?.externalId ||
+            null;
+          if (candidato && String(candidato).toUpperCase().startsWith('MLB')) {
+            p.mlbId = candidato;
+          } else if (candidato && /^\d+$/.test(String(candidato))) {
+            p.mlbId = 'MLB' + candidato;
+          }
+          // Salva MLB alternativo (clássico) para fallback de busca de catálogo
+          const anuncioAlt = anunciosML.find(x => x !== anuncio);
+          if (anuncioAlt) {
+            const cands2 = [anuncioAlt.externalId, anuncioAlt.adId, anuncioAlt.itemId, anuncioAlt.fields?.item_id];
+            for (const c of cands2) {
+              if (c && String(c).toUpperCase().startsWith('MLB')) { p.mlbIdAlt = c; break; }
+            }
+          }
+        }
+
+        // Fallback: busca MLB direto via seller_id ML autenticado
+        if (!p.mlbId && p.skuApiId && state.mlToken && state.mlSellerId) {
+          try {
+            // Busca anúncios do seller que contenham o SKU parceiro
+            const mlResp = await fetch(
+              `https://api.mercadolibre.com/users/${state.mlSellerId}/items/search?seller_sku=${encodeURIComponent(p.sku)}&limit=1`,
+              { headers: { 'Authorization': 'Bearer ' + state.mlToken } }
+            );
+            if (mlResp.ok) {
+              const mlData = await mlResp.json();
+              const results = mlData.results || mlData.items || [];
+              if (results.length > 0) p.mlbId = results[0];
+            }
+          } catch(e) { /* silencioso */ }
+        }
+
+        if(p.precoClassico&&p.precoPremium){p.valor=((p.precoClassico+p.precoPremium)/2)*p.estoque;}
+        else if(p.precoPremium){p.valor=p.precoPremium*p.estoque;}
+        else if(p.precoClassico){p.valor=p.precoClassico*p.estoque;}
+      } catch(e){/* silencioso */}
+    }));
+    aplicarFiltros();
+    await delay(400);
+  }
+  // Após carregar preços ML, busca concorrentes se ML conectado
+  if (mlTokenValido()) buscarConcorrentesBackground(state.produtos);
+}
+
+function sortTabela(tabela,campo){
+  const s=state.sort[tabela];
+  s.dir=(s.campo===campo&&s.dir==='desc')?'asc':'desc';
+  s.campo=campo;
+  document.querySelectorAll(`#tbl-${tabela} th`).forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.getAttribute('onclick')===`sortTabela('${tabela}','${campo}')`) th.classList.add(s.dir==='asc'?'sort-asc':'sort-desc');
+  });
+  renderizar();
+}
+
+function ordenar(lista,campo,dir){
+  return [...lista].sort((a,b)=>{
+    let va=a[campo],vb=b[campo];
+    if(campo==='valor'||campo==='receita'){va=a.preco*a.estoque;vb=b.preco*b.estoque;}
+    if(campo==='anuncioML'){va=va===true?0:va===false?1:2;vb=vb===true?0:vb===false?1:2;}
+    if(typeof va==='string') return dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+    return dir==='asc'?va-vb:vb-va;
+  });
+}
+
+function renderizar(){
+  const f=getFiltros();
+  const todos=state.filtrados;
+  const opps=todos.filter(p=>p.preco>=f.ticket&&p.estoque>=Math.max(1,f.estoque));
+  const semAnuncio=todos.filter(p=>p.anuncioML===false&&p.estoque>0);
+  const valorTotal=todos.reduce((a,p)=>a+p.valor,0);
+  document.getElementById('kpi-total').textContent=todos.length;
+  document.getElementById('kpi-total-sub').textContent=`de ${state.produtos.length} SKUs carregados`;
+  document.getElementById('kpi-opp').textContent=opps.length;
+  document.getElementById('kpi-opp-sub').textContent=`ticket ≥ R$ ${f.ticket.toLocaleString('pt-BR')}`;
+  document.getElementById('kpi-sem').textContent=semAnuncio.length;
+  document.getElementById('kpi-sem-sub').textContent=semAnuncio.length>0?'com estoque disponível':'nenhum identificado';
+  document.getElementById('kpi-valor').textContent=valorTotal>0?fmtInt(valorTotal):'—';
+  document.getElementById('badge-opp').textContent=opps.length;
+  document.getElementById('badge-sem').textContent=semAnuncio.length;
+  document.getElementById('filter-count').textContent=`${todos.length} produto${todos.length!==1?'s':''} visíveis`;
+  const so=state.sort.opp,ss=state.sort.sem;
+  renderTabela('tbody-opp',ordenar(opps,so.campo,so.dir),'opp');
+  renderTabela('tbody-sem',ordenar(semAnuncio,ss.campo,ss.dir),'sem');
+}
+
+function renderPrecoML(p){
+  if(!p.skuApiId) return `<span style="color:var(--text3);font-size:11px;">—</span>`;
+  if(p.precoClassico===null&&p.precoPremium===null) return `<span style="color:var(--text3);font-size:10px;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border:1.5px solid var(--accent);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite"></span>carregando</span>`;
+
+  const renderLinha = (label, preco, precoOrig) => {
+    if (!preco) return '';
+    const emPromocao = precoOrig && precoOrig > preco;
+    const badge = emPromocao ? `<span style="font-size:9px;background:#fef3dc;color:#8a5a00;border-radius:3px;padding:1px 4px;margin-left:3px;font-weight:600">PROMO</span>` : '';
+    const orig = emPromocao ? `<span style="font-size:9px;color:var(--text3);text-decoration:line-through;margin-right:3px">${fmtBRL(precoOrig)}</span>` : '';
+    return `<div style="font-size:11px;color:var(--text2);line-height:1.6">
+      <span style="font-size:9px;color:var(--text3);display:block">${label}${badge}</span>
+      ${orig}<span style="font-weight:${label==='Premium'?'700':'400'};color:${emPromocao?'var(--green)':'var(--text)'}">${fmtBRL(preco)}</span>
+    </div>`;
+  };
+
+  const cls = renderLinha('Clássico', p.precoClassico, p.precoClassicoOrig);
+  const prm = renderLinha('Premium',  p.precoPremium,  p.precoPremiumOrig);
+  if(!cls&&!prm) return `<span style="color:var(--text3);font-size:11px;">Sem anúncio</span>`;
+  return `<div style="display:flex;flex-direction:column;gap:2px;min-width:100px">${cls}${prm}</div>`;
+}
+
+function renderTabela(tbodyId,lista,tipo){
+  const tbody=document.getElementById(tbodyId);
+  if(!lista.length){tbody.innerHTML=`<tr><td colspan="9" class="empty-state">Nenhum produto com os filtros atuais.</td></tr>`;return;}
+  tbody.innerHTML=lista.map(p=>{
+    const eCls=p.estoque<=5?'stock-low':'stock-ok';
+    const ml=p.anuncioML===true?'<span class="badge badge-green">Anunciado</span>':p.anuncioML==='paused'?'<span class="badge badge-amber">Pausado</span>':p.anuncioML===false?'<span class="badge badge-red">Sem anúncio</span>':'<span class="badge badge-amber">...</span>';
+    const precoML=renderPrecoML(p);
+    const val=fmtInt(p.valor);
+    const concTd = renderColunaConc(p);
+    if(tipo==='opp') return `<tr style="height:52px"><td class="td-mono">${esc(p.sku)}</td><td class="td-nome" title="${esc(p.nome)}">${esc(p.nome)}</td><td>${esc(p.marca)}</td><td>${esc(p.categoria)}</td><td class="td-right">${precoML}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td><td>${ml}</td>${concTd}</tr>`;
+    return `<tr style="height:52px"><td class="td-mono">${esc(p.sku)}</td><td class="td-nome" title="${esc(p.nome)}">${esc(p.nome)}</td><td>${esc(p.marca)}</td><td>${esc(p.categoria)}</td><td class="td-right">${precoML}</td><td class="td-right ${eCls}">${p.estoque} un.</td><td class="td-right" style="font-weight:600;color:var(--accent)">${val}</td><td class="td-right" style="font-weight:600;color:var(--green)">${val}</td>${concTd}</tr>`;
+  }).join('');
+}
+
+// ── APP ──
+async function iniciarApp(produtos,isDemo){
+  state.isDemo=isDemo;state.produtos=produtos;state.filtrados=produtos;
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  popularFiltrosDash(produtos);
+  renderizarFiltrosAtivos();
+  aplicarFiltros();
+  atualizarRateBar();
+  atualizarUltimoRefresh();
+  setStatus(isDemo?'demo':'live',isDemo?'Modo demo':'Conectado');
+  document.getElementById('refresh-btn').disabled=false;
+  document.getElementById('ml-banner').style.display='flex';
+  atualizarStatusML();
+  if(!isDemo) buscarPrecosML(state.produtos);
+  else if(mlTokenValido()) buscarConcorrentesBackground(state.produtos);
+}
+
+function iniciarDemo(){
+  carregarChamadas();
+  state.categoriasSelecionadas=[{id:'10',name:'PLACAS DE VÍDEO',path:'INFORMATICA/PLACAS DE VÍDEO'}];
+  state.marcasSelecionadas=[{id:'1',name:'PCYES'},{id:'2',name:'ASROCK'},{id:'3',name:'ZOTAC'},{id:'4',name:'INNO3D'},{id:'5',name:'PALIT'}];
+  state.marcasDisponiveis=state.marcasSelecionadas;
+  iniciarApp(gerarDadosDemo(),true);
+}
+
+async function recarregarDados(){
+  if(state.isDemo){iniciarApp(gerarDadosDemo(),true);return;}
+  if(state.carregando) return;
+  if(!podeFazerRefresh()){
+    const diff=Math.ceil(CONFIG.COOLDOWN_MIN-(Date.now()-state.ultimo_refresh)/60000);
+    document.getElementById('cooldown-msg').textContent=`Aguarde ${diff} min antes do próximo refresh.`;
+    document.getElementById('cooldown-bar').style.display='flex';
+    setTimeout(()=>{document.getElementById('cooldown-bar').style.display='none';},5000);
+    return;
+  }
+  state.carregando=true;
+  const btn=document.getElementById('refresh-btn');
+  btn.disabled=true;btn.textContent='Atualizando...';
+  try {
+    const todos=[],ids=new Set();
+    const marcasIds=new Set(state.marcasSelecionadas.map(m=>String(m.id)));
+    for(const cat of state.categoriasSelecionadas){
+      const prods=await buscarComFiltro(`categoryId=${cat.id}`);
+      prods.forEach(p=>{if(!ids.has(p.id)){const bId=String(p.brand?.id||'');if(marcasIds.size===0||marcasIds.has(bId)){todos.push(p);ids.add(p.id);}}});
+    }
+    state.concorrentesCache={};
+    state.produtos=todos.map(normalizarProduto);
+    popularFiltrosDash(state.produtos);
+    aplicarFiltros();
+    atualizarUltimoRefresh();
+    buscarPrecosML(state.produtos);
+  }catch(e){mostrarErro(e.message);}
+  state.carregando=false;
+  btn.disabled=false;btn.textContent='Atualizar';
+}
+
+function editarSelecao(){document.getElementById('app').style.display='none';document.getElementById('setup-screen').style.display='flex';irParaStep('step-categorias');}
+function sair(){localStorage.removeItem(CONFIG.KEY_TOKEN);state.token=null;state.produtos=[];document.getElementById('app').style.display='none';document.getElementById('setup-screen').style.display='flex';document.getElementById('token-input').value='';irParaStep('step-token');}
+function voltarStep(id){irParaStep(id);}
+function irParaStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function setStatus(tipo,txt){const p=document.getElementById('status-pill');p.className='status-pill '+(tipo==='live'?'status-live':'status-demo');document.getElementById('status-text').textContent=txt;}
+function setLoading(id,show,txt=''){const el=document.getElementById(id);el.style.display=show?'flex':'none';if(txt&&el.querySelector('span'))el.querySelector('span').textContent=txt;}
+function mostrarErro(msg){const el=document.getElementById('error-bar');document.getElementById('error-msg').textContent=msg;el.style.display='flex';setTimeout(()=>{el.style.display='none';},8000);}
+function mostrarErroSetup(msg){alert(msg);}
+function atualizarUltimoRefresh(){state.ultimo_refresh=Date.now();localStorage.setItem(CONFIG.KEY_LAST,state.ultimo_refresh);const h=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});document.getElementById('last-update-txt').textContent=`Atualizado às ${h}`;}
+
+(function init(){
+  carregarChamadas();
+  carregarMLToken();
+  const t=localStorage.getItem(CONFIG.KEY_TOKEN);
+  if(t) document.getElementById('token-input').value=t;
+  const ul=localStorage.getItem(CONFIG.KEY_LAST);
+  if(ul) state.ultimo_refresh=parseInt(ul);
+  // Verifica callback OAuth do ML
+  verificarOAuthCallback();
+})();
+</script>
+</body>
+</html>
+
+<!-- deploy-force: 1783947763 -->
