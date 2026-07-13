@@ -198,10 +198,10 @@
   .modal-summary-val.blue { color: var(--accent); }
   /* Tabela sem overflow */
   .modal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .modal-table col.c-pos { width: 34px; }
-  .modal-table col.c-seller { width: 55%; }
-  .modal-table col.c-price { width: 22%; }
-  .modal-table col.c-diff { width: 18%; }
+  .modal-table col.c-pos { width: 30px; }
+  .modal-table col.c-seller { width: auto; }
+  .modal-table col.c-price { width: 110px; }
+  .modal-table col.c-diff { width: 90px; }
   .modal-table th { font-size: 10px; color: var(--text3); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; overflow: hidden; }
   .modal-table th.right { text-align: right; }
   .modal-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1113,7 +1113,10 @@ async function abrirModalConc(mlbId, nomeProduto) {
 
     // Card de resumo: seu preço | posição | diff vs 1º
     const melhorPreco = concs[0]?.preco || 0;
-    const diffVs1 = meuPreco > 0 && melhorPreco > 0 ? ((meuPreco - melhorPreco) / melhorPreco * 100) : null;
+    // FIX: usa menor preço ML publicado (Clássico ou Premium) como base
+    const _menorML = Math.min(prod?.precoClassico || Infinity, prod?.precoPremium || Infinity);
+    const meuPrecoModal = isFinite(_menorML) ? _menorML : (prod?.preco || 0);
+    const diffVs1 = meuPrecoModal > 0 && melhorPreco > 0 ? ((meuPrecoModal - melhorPreco) / melhorPreco * 100) : null;
     const diffVs1Cls = diffVs1 === null ? 'blue' : diffVs1 <= 0 ? 'green' : diffVs1 <= 10 ? 'amber' : 'red';
     const diffVs1Txt = diffVs1 === null ? '—' : diffVs1 <= 0 ? `▼ ${Math.abs(diffVs1).toFixed(1)}%` : `▲ ${diffVs1.toFixed(1)}%`;
     const posTxt = minhaPos ? `${minhaPos}º de ${concs.length}` : euEstouNaLista ? '—' : `> ${concs.length}`;
@@ -1122,7 +1125,7 @@ async function abrirModalConc(mlbId, nomeProduto) {
       <div class="modal-summary">
         <div class="modal-summary-cell">
           <div class="modal-summary-label">Seu preço</div>
-          <div class="modal-summary-val blue">${meuPreco > 0 ? fmtBRL(meuPreco) : '—'}</div>
+          <div class="modal-summary-val blue">${meuPrecoModal > 0 ? fmtBRL(meuPrecoModal) : '—'}</div>
           <div class="modal-summary-sub">anunciado</div>
         </div>
         <div class="modal-summary-cell">
@@ -1142,7 +1145,7 @@ async function abrirModalConc(mlbId, nomeProduto) {
       const pos = i + 1;
       const posBadgeCls = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-n';
       const isMe = !!c._isMe;
-      const diffPct = meuPreco > 0 && c.preco > 0 ? ((meuPreco - c.preco) / c.preco * 100) : null;
+      const diffPct = meuPrecoModal > 0 && c.preco > 0 ? ((meuPrecoModal - c.preco) / c.preco * 100) : null;
       const diffHtml = diffPct !== null
         ? `<span class="${diffPct < -0.1 ? 'diff-pos' : diffPct > 0.1 ? 'diff-neg' : 'diff-zero'}">${fmtPct(-diffPct)}</span>`
         : '<span class="diff-zero">—</span>';
@@ -1155,17 +1158,17 @@ async function abrirModalConc(mlbId, nomeProduto) {
       return `<tr class="${isMe ? 'my-row' : ''}">
         <td><span class="pos-badge ${posBadgeCls}">${pos}</span></td>
         <td>${sellerHtml}</td>
-        <td class="right" style="font-weight:${isMe?'700':'400'}">${precoHtml}</td>
+        <td class="right" style="font-weight:${isMe?'700':'400'}">${isMe ? (meuPrecoModal > 0 ? fmtBRL(meuPrecoModal) : precoHtml) : precoHtml}</td>
         <td class="right">${diffHtml}</td>
       </tr>`;
     }).join('');
 
     // Linha "Você" separada se não estiver no top 5
-    if (!euEstouNaLista && meuPreco > 0) {
+    if (!euEstouNaLista && meuPrecoModal > 0) {
       rows += `<tr class="my-row-sep">
         <td><span class="pos-badge pos-n">?</span></td>
         <td><span style="color:var(--accent);font-weight:700">🏪 Você</span></td>
-        <td class="right" style="font-weight:700">${fmtBRL(meuPreco)}</td>
+        <td class="right" style="font-weight:700">${fmtBRL(meuPrecoModal)}</td>
         <td class="right">${diffVs1 !== null ? `<span class="${diffVs1 > 0.1 ? 'diff-neg' : 'diff-pos'}">${fmtPct(-diffVs1)}</span>` : '—'}</td>
       </tr>`;
     }
