@@ -179,7 +179,7 @@
   /* MODAL — layout fixo sem scroll horizontal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
   .modal-overlay.open { display: flex; }
-  .modal-box { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+  .modal-box { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); width: 100%; max-width: 680px; max-height: 92vh; overflow-y: auto; overflow-x: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
   .modal-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .modal-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; word-break: break-word; }
   .modal-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
@@ -198,14 +198,14 @@
   .modal-summary-val.blue { color: var(--accent); }
   /* Tabela sem overflow */
   .modal-table { width: 100%; border-collapse: collapse; table-layout: auto; }
-  .modal-table col.c-pos { width: 32px; }
-  .modal-table col.c-seller { width: 1px; white-space: nowrap; }
-  .modal-table col.c-price { width: 105px; }
-  .modal-table col.c-diff { width: 80px; }
+  .modal-table col.c-pos { width: 36px; }
+  .modal-table col.c-seller { }
+  .modal-table col.c-price { width: 120px; }
+  .modal-table col.c-diff { width: 90px; }
   .modal-table th { font-size: 10px; color: var(--text3); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; overflow: hidden; }
   .modal-table th.right { text-align: right; }
-  .modal-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
-  .modal-table td.c-seller-td { width: 1px; }
+  .modal-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
+  .modal-table td.right { text-align: right; font-variant-numeric: tabular-nums; }
   .modal-table tr:last-child td { border-bottom: none; }
   .modal-table tr.my-row td { background: var(--accent-light); }
   .modal-table tr.my-row-sep td { border-top: 2px dashed var(--border2); background: var(--accent-light); }
@@ -1474,10 +1474,13 @@ async function buscarPrecosML(produtos) {
               );
               if (!r.ok) return null;
               const d = await r.json();
+              // sale_price na API ML é número direto (não objeto)
+              const precoFinal = parseFloat(d.sale_price || d.price || 0);
+              const precoOriginal = parseFloat(d.original_price || d.price || 0);
               return {
-                preco: parseFloat(d.sale_price?.amount || d.price || 0),
-                original: parseFloat(d.original_price || d.price || 0),
-                emPromocao: d.sale_price != null && d.sale_price.amount < (d.original_price || d.price),
+                preco: precoFinal,
+                original: precoOriginal,
+                emPromocao: d.sale_price != null && precoFinal < precoOriginal,
               };
             } catch(e) { return null; }
           };
@@ -1496,9 +1499,14 @@ async function buscarPrecosML(produtos) {
             p.precoPremiumOrig = dadosPremium.emPromocao ? dadosPremium.original : null;
           }
 
-          // Recalcula precoClassico e precoPremium com preço real ML se disponível
+          // Atualiza preços com valores reais do ML
           if (p.precoClassicoML) p.precoClassico = p.precoClassicoML;
           if (p.precoPremiumML)  p.precoPremium  = p.precoPremiumML;
+          // Se não tem clássico mas tem premium, usa premium como base de preço clássico
+          // (produto só tem gold_pro cadastrado)
+          if (!p.precoClassico && p.precoPremiumML) {
+            p.precoClassico = null; // mantém null — não exibe linha Clássico inexistente
+          }
         }
 
         // Extrai MLB do retorno — prefere Premium (gold_pro) sobre Clássico (gold_special)
