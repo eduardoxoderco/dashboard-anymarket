@@ -1438,14 +1438,18 @@ async function buscarPrecosML(produtos) {
         if(!resp.ok) return;
         const data=await resp.json();
         const ml=Array.isArray(data)?data:(data.content||[]);
-        const anunciosML=ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&x.publicationStatus==='ACTIVE');
+        // Aceita ACTIVE e PAUSED — anúncios pausados ainda têm preço válido
+        const anunciosML=ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&(x.publicationStatus==='ACTIVE'||x.publicationStatus==='PAUSED'));
         const classico=anunciosML.find(x=>x.fields?.listing_type_id==='gold_special');
         const premium=anunciosML.find(x=>x.fields?.listing_type_id==='gold_pro');
         const qualquer=anunciosML[0];
         const getPreco=x=>{if(!x) return null;const s=parseFloat(x.fields?.marketplace_sale_price);return(s&&!isNaN(s))?s:(x.discountPrice||x.price||null);};
         p.precoClassico=getPreco(classico);
         p.precoPremium=getPreco(premium)||getPreco(qualquer);
-        p.anuncioML=anunciosML.length>0?true:(ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length>0?false:null);
+        // ACTIVE = anunciado, PAUSED = pausado, ausente = sem anúncio
+        const ativosML = ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&x.publicationStatus==='ACTIVE');
+        const pausadosML = ml.filter(x=>x.marketPlace==='MERCADO_LIVRE'&&x.publicationStatus==='PAUSED');
+        p.anuncioML = ativosML.length>0 ? true : pausadosML.length>0 ? 'paused' : (ml.filter(x=>x.marketPlace==='MERCADO_LIVRE').length>0 ? false : null);
 
         // Busca preço real do ML via API (captura promoções, campanhas etc.)
         if (state.mlToken && mlTokenValido()) {
@@ -1624,7 +1628,7 @@ function renderTabela(tbodyId,lista,tipo){
   if(!lista.length){tbody.innerHTML=`<tr><td colspan="9" class="empty-state">Nenhum produto com os filtros atuais.</td></tr>`;return;}
   tbody.innerHTML=lista.map(p=>{
     const eCls=p.estoque<=5?'stock-low':'stock-ok';
-    const ml=p.anuncioML===true?'<span class="badge badge-green">Anunciado</span>':p.anuncioML===false?'<span class="badge badge-red">Sem anúncio</span>':'<span class="badge badge-amber">...</span>';
+    const ml=p.anuncioML===true?'<span class="badge badge-green">Anunciado</span>':p.anuncioML==='paused'?'<span class="badge badge-amber">Pausado</span>':p.anuncioML===false?'<span class="badge badge-red">Sem anúncio</span>':'<span class="badge badge-amber">...</span>';
     const precoML=renderPrecoML(p);
     const val=fmtInt(p.valor);
     const concTd = renderColunaConc(p);
