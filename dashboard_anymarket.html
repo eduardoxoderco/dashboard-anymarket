@@ -1000,7 +1000,13 @@ function renderColunaConc(p) {
 
   // Calcula diferença vs melhor preço do catálogo
   const melhor = p.concorrentes[0];
-  const meuPreco = p.preco;
+  // FIX: usa menor preço ML publicado (Clássico ou Premium) como base de comparação
+  // Se ainda não carregou os preços ML, usa p.preco como fallback
+  const _menorML = Math.min(
+    p.precoClassico || Infinity,
+    p.precoPremium  || Infinity
+  );
+  const meuPreco = isFinite(_menorML) ? _menorML : p.preco;
   const diff = meuPreco > 0 ? ((meuPreco - melhor.preco) / melhor.preco * 100) : 0;
   const badgeCls = diff <= 0 ? 'ok' : diff <= 10 ? 'warn' : 'danger';
   const diffTxt = diff <= 0 ? `✅ ${Math.abs(diff).toFixed(0)}% abaixo` : diff <= 10 ? `⚠️ +${diff.toFixed(0)}%` : `🔴 +${diff.toFixed(0)}%`;
