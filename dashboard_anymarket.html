@@ -732,9 +732,10 @@ async function buscarConcorrentesCatalogo(catalogProductId) {
 
     // Normaliza cada item extraindo preço de todos os campos possíveis
     const normalizarItem = item => {
+      // API ML /products/{id}/items retorna: item_id, price, seller_id
       const preco = parseFloat(
-        item.buy_box_price ||
         item.price ||
+        item.buy_box_price ||
         item.sale_price ||
         item.original_price ||
         item.prices?.amount ||
@@ -750,8 +751,9 @@ async function buscarConcorrentesCatalogo(catalogProductId) {
       return {
         preco,
         seller_id,
-        mlb: item.id || item.item_id || '',
+        mlb: item.item_id || item.id || '',
         condicao: item.condition === 'new' ? 'Novo' : 'Usado',
+        listing_type: item.listing_type_id || '',
       };
     };
 
