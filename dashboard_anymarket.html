@@ -179,7 +179,7 @@
   /* MODAL — layout fixo sem scroll horizontal */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px; }
   .modal-overlay.open { display: flex; }
-  .modal-box { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+  .modal-box { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
   .modal-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .modal-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; word-break: break-word; }
   .modal-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
@@ -197,14 +197,15 @@
   .modal-summary-val.amber { color: var(--amber); }
   .modal-summary-val.blue { color: var(--accent); }
   /* Tabela sem overflow */
-  .modal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .modal-table col.c-pos { width: 30px; }
-  .modal-table col.c-seller { width: auto; }
-  .modal-table col.c-price { width: 110px; }
-  .modal-table col.c-diff { width: 90px; }
+  .modal-table { width: 100%; border-collapse: collapse; table-layout: auto; }
+  .modal-table col.c-pos { width: 32px; }
+  .modal-table col.c-seller { width: 1px; white-space: nowrap; }
+  .modal-table col.c-price { width: 105px; }
+  .modal-table col.c-diff { width: 80px; }
   .modal-table th { font-size: 10px; color: var(--text3); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); white-space: nowrap; overflow: hidden; }
   .modal-table th.right { text-align: right; }
-  .modal-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .modal-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 12px; white-space: nowrap; }
+  .modal-table td.c-seller-td { width: 1px; }
   .modal-table tr:last-child td { border-bottom: none; }
   .modal-table tr.my-row td { background: var(--accent-light); }
   .modal-table tr.my-row-sep td { border-top: 2px dashed var(--border2); background: var(--accent-light); }
@@ -217,7 +218,7 @@
   .diff-pos { color: var(--green); font-weight: 600; }
   .diff-neg { color: var(--red); font-weight: 600; }
   .diff-zero { color: var(--text3); }
-  .seller-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 180px; }
+  .seller-name { white-space: nowrap; display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
   .modal-footer { padding: 10px 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
   .modal-footer-note { font-size: 10px; color: var(--text3); }
   .modal-footer-link { font-size: 11px; color: var(--accent); text-decoration: none; font-weight: 500; }
